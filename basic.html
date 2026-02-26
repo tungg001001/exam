@@ -177,15 +177,16 @@ function showAnswers(){
   });
 }
 
-// CSV 匯出 UTF-8 BOM
+// CSV 匯出 (UTF-8 + BOM)
 function exportCSV(){
   const data = JSON.parse(localStorage.getItem("records")||"[]");
-  let csv="\uFEFF班級,座號,姓名,分數,時間\n"; // 加 BOM 防止 Excel 中文亂碼
+  let csv="\uFEFF班級,座號,姓名,分數,時間\n"; // BOM 防止 Excel 中文亂碼
   data.forEach(r=>{
     csv+=`${r.class},${r.no},${r.name},${r.score},${r.time}\n`;
   });
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"}));
+  a.href = URL.createObjectURL(blob);
   a.download = "資通安全測驗成績.csv";
   a.click();
 }
