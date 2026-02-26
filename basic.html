@@ -110,12 +110,9 @@ function submitQuiz(){
   if(!c||!n||!nm){alert("請填完整學生資料"); return;}
 
   let score = 0;
-  const studentAnswers = [];
   questions.forEach((q,i)=>{
     const s = document.querySelector(`input[name="q${i}"]:checked`);
-    const ans = s ? +s.value : -1;
-    studentAnswers.push(ans);
-    if(ans===q.a) score++;
+    if(s && +s.value===q.a) score++;
   });
 
   document.getElementById("result").innerText = `你的成績：${score} / 20`;
@@ -147,7 +144,7 @@ function teacherLogin(){
   }
 }
 
-// 顯示所有學生紀錄
+// 顯示學生紀錄
 function loadRecords(){
   const tbody = document.getElementById("records");
   tbody.innerHTML = "";
@@ -163,7 +160,7 @@ function loadRecords(){
   });
 }
 
-// 顯示正確答案表
+// 顯示正確答案
 function loadAnswerKey(){
   const tbody = document.getElementById("answerKey");
   tbody.innerHTML = "";
