@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<title>資通安全基本概念測驗（20 題）</title>
+<title>資通安全基本概念測驗</title>
 <style>
 body{font-family:"Microsoft JhengHei",sans-serif;background:#0f172a;color:#e5e7eb;padding:20px;}
 h1,h2{color:#38bdf8;}
@@ -46,11 +46,7 @@ th{background:#1e293b;}
   <table>
     <thead>
       <tr>
-        <th>班級</th>
-        <th>座號</th>
-        <th>姓名</th>
-        <th>分數</th>
-        <th>時間</th>
+        <th>班級</th><th>座號</th><th>姓名</th><th>分數</th><th>時間</th>
       </tr>
     </thead>
     <tbody id="records"></tbody>
@@ -84,8 +80,8 @@ const questions = [
  {q:"資安教育目的？",o:["增功能","提升意識","降成本","少上網"],a:1}
 ];
 
+// 等頁面載入完成再生成題目
 window.onload = function(){
-  // 隨機排序
   questions.sort(()=>Math.random()-0.5);
   const quizDiv = document.getElementById("quiz");
   questions.forEach((q,i)=>{
@@ -98,13 +94,12 @@ window.onload = function(){
   });
 }
 
-// 提交
 function submitQuiz(){
   const c = document.getElementById("className").value;
   const n = document.getElementById("no").value;
   const nm = document.getElementById("name").value;
-  if(!c||!n||!nm){alert("請填完整學生資料"); return;}
-  
+  if(!c||!n||!nm){alert("請填完整學生資料");return;}
+
   let score = 0;
   questions.forEach((q,i)=>{
     const s = document.querySelector(`input[name="q${i}"]:checked`);
@@ -118,7 +113,6 @@ function submitQuiz(){
   loadRecords();
 }
 
-// 教師登入
 function teacherLogin(){
   const pwd = document.getElementById("teacherPwd").value;
   if(pwd===TEACHER_PASSWORD){
@@ -130,7 +124,6 @@ function teacherLogin(){
   }
 }
 
-// 載入成績
 function loadRecords(){
   const tbody = document.getElementById("records");
   tbody.innerHTML = "";
@@ -146,13 +139,10 @@ function loadRecords(){
   });
 }
 
-// 匯出CSV
 function exportCSV(){
   const data = JSON.parse(localStorage.getItem("records")||"[]");
   let csv="班級,座號,姓名,分數,時間\n";
-  data.forEach(r=>{
-    csv+=`${r.class},${r.no},${r.name},${r.score},${r.time}\n`;
-  });
+  data.forEach(r=>{csv+=`${r.class},${r.no},${r.name},${r.score},${r.time}\n`;});
   const a=document.createElement("a");
   a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
   a.download="資通安全測驗成績.csv";
