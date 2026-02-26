@@ -177,14 +177,19 @@ function showAnswers(){
   });
 }
 
-// CSV 匯出 (UTF-8 + BOM)
+// CSV 匯出 (UTF-16 LE Excel 友好)
 function exportCSV(){
   const data = JSON.parse(localStorage.getItem("records")||"[]");
-  let csv="\uFEFF班級,座號,姓名,分數,時間\n"; // BOM 防止 Excel 中文亂碼
+  let csv="班級,座號,姓名,分數,時間\n";
   data.forEach(r=>{
     csv+=`${r.class},${r.no},${r.name},${r.score},${r.time}\n`;
   });
-  const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
+
+  // UTF-16 LE
+  const buf = new ArrayBuffer(csv.length*2);
+  const bufView = new Uint16Array(buf);
+  for(let i=0;i<csv.length;i++) bufView[i]=csv.charCodeAt(i);
+  const blob = new Blob([bufView], {type:"text/csv;charset=UTF-16LE"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = "資通安全測驗成績.csv";
