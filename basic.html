@@ -52,13 +52,16 @@ th{background:#1e293b;}
     <tbody id="records"></tbody>
   </table>
 
-  <h3>📌 正確答案表</h3>
-  <table>
-    <thead>
-      <tr><th>題號</th><th>題目</th><th>正確答案</th></tr>
-    </thead>
-    <tbody id="answerKey"></tbody>
-  </table>
+  <button onclick="showAnswers()">📢 公佈正確答案</button>
+  <div id="answerDiv" style="display:none">
+    <h3>📌 正確答案表</h3>
+    <table>
+      <thead>
+        <tr><th>題號</th><th>題目</th><th>正確答案</th></tr>
+      </thead>
+      <tbody id="answerKey"></tbody>
+    </table>
+  </div>
 </div>
 
 <script>
@@ -138,7 +141,6 @@ function teacherLogin(){
     document.getElementById("teacherLoginDiv").style.display="none";
     document.getElementById("teacherArea").style.display="block";
     loadRecords();
-    loadAnswerKey();
   } else {
     document.getElementById("loginMsg").innerText="❌ 密碼錯誤";
   }
@@ -160,8 +162,10 @@ function loadRecords(){
   });
 }
 
-// 顯示正確答案
-function loadAnswerKey(){
+// 公佈答案
+function showAnswers(){
+  const div = document.getElementById("answerDiv");
+  div.style.display = "block";
   const tbody = document.getElementById("answerKey");
   tbody.innerHTML = "";
   questions.forEach((q,i)=>{
@@ -173,10 +177,10 @@ function loadAnswerKey(){
   });
 }
 
-// CSV 匯出
+// CSV 匯出 UTF-8 BOM
 function exportCSV(){
   const data = JSON.parse(localStorage.getItem("records")||"[]");
-  let csv="班級,座號,姓名,分數,時間\n";
+  let csv="\uFEFF班級,座號,姓名,分數,時間\n"; // 加 BOM 防止 Excel 中文亂碼
   data.forEach(r=>{
     csv+=`${r.class},${r.no},${r.name},${r.score},${r.time}\n`;
   });
