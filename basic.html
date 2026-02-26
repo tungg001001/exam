@@ -101,6 +101,13 @@ function submitQuiz(){
   const nm = document.getElementById("name").value;
   if(!c||!n||!nm){alert("請填完整學生資料"); return;}
 
+  // 防止重複提交
+  const key = `${c}_${n}_${nm}`;
+  if(localStorage.getItem(key)){
+    alert("你已經提交過了，無法再提交！");
+    return;
+  }
+
   let score = 0;
   questions.forEach((q,i)=>{
     const s = document.querySelector(`input[name="q${i}"]:checked`);
@@ -108,10 +115,14 @@ function submitQuiz(){
   });
   document.getElementById("result").innerText = `你的成績：${score} / 20`;
 
-  // 存到 localStorage
+  // 存成績
   const data = JSON.parse(localStorage.getItem("records")||"[]");
   data.push({class:c,no:n,name:nm,score:score,time:new Date().toLocaleString()});
   localStorage.setItem("records", JSON.stringify(data));
+
+  // 標記此學生已提交
+  localStorage.setItem(key, score);
+
   loadRecords(); // 更新教師區
 }
 
