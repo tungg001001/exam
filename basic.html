@@ -3,50 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <title>資通安全基本概念測驗（20 題）</title>
-
 <style>
-body{
-  font-family:"Microsoft JhengHei",sans-serif;
-  background:#0f172a;
-  color:#e5e7eb;
-  padding:20px;
-}
+body{font-family:"Microsoft JhengHei",sans-serif;background:#0f172a;color:#e5e7eb;padding:20px;}
 h1,h2{color:#38bdf8;}
-.section{
-  background:#020617;
-  padding:15px;
-  border-radius:8px;
-  margin-bottom:20px;
-}
+.section{background:#020617;padding:15px;border-radius:8px;margin-bottom:20px;}
 .question{margin-bottom:15px;}
 input{padding:5px;margin:5px;}
-button{
-  background:#38bdf8;
-  border:none;
-  padding:10px 20px;
-  font-size:16px;
-  border-radius:6px;
-  cursor:pointer;
-}
+button{background:#38bdf8;border:none;padding:10px 20px;font-size:16px;border-radius:6px;cursor:pointer;}
 button:hover{background:#0ea5e9;}
-table{
-  width:100%;
-  border-collapse:collapse;
-}
-th,td{
-  border:1px solid #334155;
-  padding:8px;
-  text-align:center;
-}
+table{width:100%;border-collapse:collapse;}
+th,td{border:1px solid #334155;padding:8px;text-align:center;}
 th{background:#1e293b;}
 </style>
 </head>
-
 <body>
 
 <h1>🛡️ 資通安全基本概念測驗（20 題）</h1>
 
-<!-- 學生資料 -->
 <div class="section">
   <h2>👨‍🎓 學生資料</h2>
   班級：<input id="className">
@@ -54,23 +27,19 @@ th{background:#1e293b;}
   姓名：<input id="name">
 </div>
 
-<!-- 測驗區 -->
 <div class="section" id="quiz"></div>
 <button onclick="submitQuiz()">提交測驗</button>
 <h2 id="result"></h2>
 
 <hr>
 
-<!-- 教師登入 -->
 <div class="section" id="teacherLoginDiv">
   <h2>🔐 教師登入</h2>
-  教師密碼：
-  <input type="password" id="teacherPwd">
+  教師密碼：<input type="password" id="teacherPwd">
   <button onclick="teacherLogin()">登入</button>
   <p id="loginMsg" style="color:#f87171"></p>
 </div>
 
-<!-- 教師區（預設隱藏） -->
 <div class="section" id="teacherArea" style="display:none">
   <h2>👨‍🏫 教師成績總覽</h2>
   <button onclick="exportCSV()">匯出 CSV</button>
@@ -89,10 +58,9 @@ th{background:#1e293b;}
 </div>
 
 <script>
-// ===== 教師密碼（可自行修改）=====
 const TEACHER_PASSWORD = "teacher123";
 
-// ===== 題庫 =====
+// 題庫
 const questions = [
  {q:"資通安全核心目標？",o:["提升速度","CIA 三原則","增加設備","降低成本"],a:1},
  {q:"CIA 不包含？",o:["機密性","完整性","可用性","便利性"],a:3},
@@ -116,92 +84,80 @@ const questions = [
  {q:"資安教育目的？",o:["增功能","提升意識","降成本","少上網"],a:1}
 ];
 
-// ===== 題目隨機 =====
-questions.sort(()=>Math.random()-0.5);
-const quiz = document.getElementById("quiz");
-
-questions.forEach((q,i)=>{
-  let html = `<div class="question"><b>${i+1}. ${q.q}</b><br>`;
-  q.o.forEach((o,j)=>{
-    html += `<label><input type="radio" name="q${i}" value="${j}"> ${o}</label><br>`;
+window.onload = function(){
+  // 隨機排序
+  questions.sort(()=>Math.random()-0.5);
+  const quizDiv = document.getElementById("quiz");
+  questions.forEach((q,i)=>{
+    let html = `<div class="question"><b>${i+1}. ${q.q}</b><br>`;
+    q.o.forEach((o,j)=>{
+      html += `<label><input type="radio" name="q${i}" value="${j}"> ${o}</label><br>`;
+    });
+    html += "</div>";
+    quizDiv.innerHTML += html;
   });
-  html += `</div>`;
-  quiz.innerHTML += html;
-});
+}
 
-// ===== 提交測驗 =====
+// 提交
 function submitQuiz(){
-  const c  = document.getElementById("className").value;
-  const n  = document.getElementById("no").value;
+  const c = document.getElementById("className").value;
+  const n = document.getElementById("no").value;
   const nm = document.getElementById("name").value;
-
-  if(!c || !n || !nm){
-    alert("請填完整學生資料");
-    return;
-  }
-
+  if(!c||!n||!nm){alert("請填完整學生資料"); return;}
+  
   let score = 0;
   questions.forEach((q,i)=>{
     const s = document.querySelector(`input[name="q${i}"]:checked`);
-    if(s && +s.value === q.a) score++;
+    if(s && +s.value===q.a) score++;
   });
-
   document.getElementById("result").innerText = `你的成績：${score} / 20`;
 
-  const data = JSON.parse(localStorage.getItem("records") || "[]");
-  data.push({
-    class: c,
-    no: n,
-    name: nm,
-    score: score,
-    time: new Date().toLocaleString()
-  });
-  localStorage.setItem("records", JSON.stringify(data));
+  const data = JSON.parse(localStorage.getItem("records")||"[]");
+  data.push({class:c,no:n,name:nm,score:score,time:new Date().toLocaleString()});
+  localStorage.setItem("records",JSON.stringify(data));
   loadRecords();
 }
 
-// ===== 教師登入 =====
+// 教師登入
 function teacherLogin(){
   const pwd = document.getElementById("teacherPwd").value;
-  if(pwd === TEACHER_PASSWORD){
-    document.getElementById("teacherLoginDiv").style.display = "none";
-    document.getElementById("teacherArea").style.display = "block";
+  if(pwd===TEACHER_PASSWORD){
+    document.getElementById("teacherLoginDiv").style.display="none";
+    document.getElementById("teacherArea").style.display="block";
     loadRecords();
   }else{
-    document.getElementById("loginMsg").innerText = "❌ 密碼錯誤";
+    document.getElementById("loginMsg").innerText="❌ 密碼錯誤";
   }
 }
 
-// ===== 載入成績 =====
+// 載入成績
 function loadRecords(){
   const tbody = document.getElementById("records");
   tbody.innerHTML = "";
-  const data = JSON.parse(localStorage.getItem("records") || "[]");
+  const data = JSON.parse(localStorage.getItem("records")||"[]");
   data.forEach(r=>{
-    tbody.innerHTML += `
-      <tr>
-        <td>${r.class}</td>
-        <td>${r.no}</td>
-        <td>${r.name}</td>
-        <td>${r.score}</td>
-        <td>${r.time}</td>
-      </tr>`;
+    tbody.innerHTML += `<tr>
+      <td>${r.class}</td>
+      <td>${r.no}</td>
+      <td>${r.name}</td>
+      <td>${r.score}</td>
+      <td>${r.time}</td>
+    </tr>`;
   });
 }
 
-// ===== CSV 匯出 =====
+// 匯出CSV
 function exportCSV(){
-  const data = JSON.parse(localStorage.getItem("records") || "[]");
-  let csv = "班級,座號,姓名,分數,時間\n";
+  const data = JSON.parse(localStorage.getItem("records")||"[]");
+  let csv="班級,座號,姓名,分數,時間\n";
   data.forEach(r=>{
-    csv += `${r.class},${r.no},${r.name},${r.score},${r.time}\n`;
+    csv+=`${r.class},${r.no},${r.name},${r.score},${r.time}\n`;
   });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
-  a.download = "資通安全測驗成績.csv";
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
+  a.download="資通安全測驗成績.csv";
   a.click();
 }
 </script>
-
 </body>
 </html>
