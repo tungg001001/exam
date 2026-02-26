@@ -5,13 +5,13 @@
 <title>資通安全基本概念測驗</title>
 <style>
 body{font-family:"Microsoft JhengHei",sans-serif;background:#0f172a;color:#e5e7eb;padding:20px;}
-h1,h2{color:#38bdf8;}
+h1,h2,h3{color:#38bdf8;}
 .section{background:#020617;padding:15px;border-radius:8px;margin-bottom:20px;}
 .question{margin-bottom:15px;}
 input{padding:5px;margin:5px;}
 button{background:#38bdf8;border:none;padding:10px 20px;font-size:16px;border-radius:6px;cursor:pointer;}
 button:hover{background:#0ea5e9;}
-table{width:100%;border-collapse:collapse;}
+table{width:100%;border-collapse:collapse;margin-top:10px;}
 th,td{border:1px solid #334155;padding:8px;text-align:center;}
 th{background:#1e293b;}
 </style>
@@ -51,6 +51,14 @@ th{background:#1e293b;}
     </thead>
     <tbody id="records"></tbody>
   </table>
+
+  <h3>📌 正確答案表</h3>
+  <table>
+    <thead>
+      <tr><th>題號</th><th>題目</th><th>正確答案</th></tr>
+    </thead>
+    <tbody id="answerKey"></tbody>
+  </table>
 </div>
 
 <script>
@@ -80,7 +88,7 @@ const questions = [
  {q:"資安教育目的？",o:["增功能","提升意識","降成本","少上網"],a:1}
 ];
 
-// 題目隨機排序並生成
+// 題目隨機排序生成
 window.onload = function(){
   questions.sort(()=>Math.random()-0.5);
   const quizDiv = document.getElementById("quiz");
@@ -94,34 +102,34 @@ window.onload = function(){
   });
 }
 
-// 學生提交
+// 學生提交 (可多次)
 function submitQuiz(){
   const c = document.getElementById("className").value;
   const n = document.getElementById("no").value;
   const nm = document.getElementById("name").value;
   if(!c||!n||!nm){alert("請填完整學生資料"); return;}
 
-  // 防止重複提交
-  const key = `${c}_${n}_${nm}`;
-  if(localStorage.getItem(key)){
-    alert("你已經提交過了，無法再提交！");
-    return;
-  }
-
   let score = 0;
+  const studentAnswers = [];
   questions.forEach((q,i)=>{
     const s = document.querySelector(`input[name="q${i}"]:checked`);
-    if(s && +s.value===q.a) score++;
+    const ans = s ? +s.value : -1;
+    studentAnswers.push(ans);
+    if(ans===q.a) score++;
   });
+
   document.getElementById("result").innerText = `你的成績：${score} / 20`;
 
-  // 存成績
+  // 存紀錄
   const data = JSON.parse(localStorage.getItem("records")||"[]");
-  data.push({class:c,no:n,name:nm,score:score,time:new Date().toLocaleString()});
+  data.push({
+    class: c,
+    no: n,
+    name: nm,
+    score: score,
+    time: new Date().toLocaleString()
+  });
   localStorage.setItem("records", JSON.stringify(data));
-
-  // 標記此學生已提交
-  localStorage.setItem(key, score);
 
   loadRecords(); // 更新教師區
 }
@@ -133,12 +141,13 @@ function teacherLogin(){
     document.getElementById("teacherLoginDiv").style.display="none";
     document.getElementById("teacherArea").style.display="block";
     loadRecords();
+    loadAnswerKey();
   } else {
     document.getElementById("loginMsg").innerText="❌ 密碼錯誤";
   }
 }
 
-// 載入成績
+// 顯示所有學生紀錄
 function loadRecords(){
   const tbody = document.getElementById("records");
   tbody.innerHTML = "";
@@ -150,6 +159,19 @@ function loadRecords(){
       <td>${r.name}</td>
       <td>${r.score}</td>
       <td>${r.time}</td>
+    </tr>`;
+  });
+}
+
+// 顯示正確答案表
+function loadAnswerKey(){
+  const tbody = document.getElementById("answerKey");
+  tbody.innerHTML = "";
+  questions.forEach((q,i)=>{
+    tbody.innerHTML += `<tr>
+      <td>${i+1}</td>
+      <td>${q.q}</td>
+      <td>${q.o[q.a]}</td>
     </tr>`;
   });
 }
