@@ -2,114 +2,192 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<title>資安情蒐、分析與分享測驗（20 題）</title>
+<title>資通安全基本概念測驗</title>
 <style>
-body{
-  font-family:"Microsoft JhengHei";
-  background:#0f172a;
-  color:#e5e7eb;
-  padding:20px;
-}
-h1{color:#38bdf8;}
-.card{
-  background:#020617;
-  padding:15px;
-  border-radius:10px;
-  margin-bottom:15px;
-}
-input{margin:4px;}
-button{
-  padding:8px 16px;
-  margin:6px;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
-}
-.submit{background:#22c55e;}
-.export{background:#38bdf8;}
-.clear{background:#ef4444;}
+body{font-family:"Microsoft JhengHei",sans-serif;background:#0f172a;color:#e5e7eb;padding:20px;}
+h1,h2,h3{color:#38bdf8;}
+.section{background:#020617;padding:15px;border-radius:8px;margin-bottom:20px;}
+.question{margin-bottom:15px;}
+input{padding:5px;margin:5px;}
+button{background:#38bdf8;border:none;padding:10px 20px;font-size:16px;border-radius:6px;cursor:pointer;margin:5px;}
+button:hover{background:#0ea5e9;}
+button.danger{background:#ef4444;}
+table{width:100%;border-collapse:collapse;margin-top:10px;}
+th,td{border:1px solid #334155;padding:8px;text-align:center;}
+th{background:#1e293b;}
 </style>
 </head>
-
 <body>
 
-<h1>🕵️ 資安情蒐、分析與分享（20 題）</h1>
+<h1>🛡️ 資通安全基本概念測驗（20 題）</h1>
 
-<div class="card">
-班級：<input id="class"><br>
-座號：<input id="no"><br>
-姓名：<input id="name"><br>
+<div class="section">
+  <h2>👨‍🎓 學生資料</h2>
+  班級：<input id="className">
+  座號：<input id="no">
+  姓名：<input id="name">
 </div>
 
-<form id="quiz"></form>
+<div class="section" id="quiz"></div>
+<button onclick="submitQuiz()">提交測驗</button>
+<h2 id="result"></h2>
 
-<button class="submit" onclick="submitQuiz()">提交測驗</button>
-<button class="export" onclick="exportCSV()">教師匯出 CSV</button>
-<button class="clear" onclick="clearData()">清空所有成績</button>
+<hr>
+
+<div class="section" id="teacherLoginDiv">
+  <h2>🔐 教師登入</h2>
+  教師密碼：<input type="password" id="teacherPwd">
+  <button onclick="teacherLogin()">登入</button>
+  <p id="loginMsg" style="color:#f87171"></p>
+</div>
+
+<div class="section" id="teacherArea" style="display:none">
+  <h2>👨‍🏫 教師成績總覽</h2>
+  <button onclick="exportCSV()">📤 匯出 CSV</button>
+  <button class="danger" onclick="clearRecords()">🗑 清空所有成績</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>班級</th><th>座號</th><th>姓名</th><th>分數</th><th>時間</th>
+      </tr>
+    </thead>
+    <tbody id="records"></tbody>
+  </table>
+
+  <button onclick="showAnswers()">📢 公佈正確答案</button>
+  <div id="answerDiv" style="display:none">
+    <h3>📌 正確答案表</h3>
+    <table>
+      <thead>
+        <tr><th>題號</th><th>題目</th><th>正確答案</th></tr>
+      </thead>
+      <tbody id="answerKey"></tbody>
+    </table>
+  </div>
+</div>
 
 <script>
+const TEACHER_PASSWORD = "teacher123";
+
+/* ===== 題庫：資安情蒐、分析與分享（20 題）===== */
 const questions = [
-["OSINT 是指？","非法駭客行為","開放來源情蒐","竊聽通訊","社交工程",1],
-["下列何者屬於 OSINT 來源？","加密郵件","公開政府資料","內部資料庫","駭客論壇",1],
-["情蒐時最重要的原則是？","速度","數量","合法性","隱密性",2],
-["情資分析的主要目的是？","取得更多資料","判斷威脅","入侵系統","散布資訊",1],
-["下列何者不是情資分析步驟？","蒐集","驗證","分類","破壞",3],
-["未經查證的情資可能導致？","提升安全","誤判情勢","增加效率","降低風險",1],
-["分享情資時應注意？","立即公開","合法授權","隨意轉傳","匿名即可",1],
-["假訊息常見特徵為？","多方查證","來源不明","官方公告","資料一致",1],
-["情蒐時使用假帳號的風險是？","效率低","可能觸法","資料不足","分析困難",1],
-["情資生命週期的第一階段是？","分析","蒐集","分享","回饋",1],
-["情資分析最重要的能力是？","猜測","批判思考","操作工具","寫程式",1],
-["下列哪個工具常用於 OSINT？","Google","Metasploit","Wireshark","Nmap",0],
-["社群媒體情蒐的主要風險是？","資料太多","侵犯隱私","無法分析","沒有資料",1],
-["情資分享對象應為？","任何人","授權單位","匿名網友","社群群組",1],
-["未查證即轉傳資訊可能涉及？","言論自由","資訊倫理問題","社交互動","資料分析",1],
-["情資分析錯誤可能造成？","風險增加","防禦提升","決策正確","效率提高",0],
-["下列何者屬於合法情蒐？","公開年報","破解帳號","側錄通話","釣魚郵件",0],
-["情資共享的主要目的？","娛樂","防禦與決策","炫耀技術","販售資料",1],
-["過期情資的問題是？","分析更準","威脅誤判","成本降低","效率提高",1],
-["資安情蒐最終目的是？","攻擊系統","支援防禦決策","散布資訊","取得個資",1]
+ {id:1,q:"資安情蒐（Cyber Threat Intelligence, CTI）的主要目的為何？",o:["收集個人隱私","了解威脅趨勢","提升網速","降低硬體成本"],a:1},
+ {id:2,q:"下列何者屬於開放來源情蒐（OSINT）？",o:["內部機密文件","付費暗網資料","公開網站資訊","私人聊天紀錄"],a:2},
+ {id:3,q:"資安情蒐中，IOC 通常代表什麼？",o:["入侵指令","威脅指標","作業系統","內部控制"],a:1},
+ {id:4,q:"下列哪一項屬於技術型威脅情資？",o:["攻擊者動機","惡意 IP 位址","攻擊策略","法規說明"],a:1},
+ {id:5,q:"資安情蒐的資料來源不包含下列哪一項？",o:["漏洞公告","社群媒體","攻擊工具分析","個人帳號密碼"],a:3},
+ {id:6,q:"將零散資安資料轉換為可用資訊，屬於哪一個步驟？",o:["蒐集","分析","分享","銷毀"],a:1},
+ {id:7,q:"STIX 與 TAXII 主要用於？",o:["資料加密","威脅情資交換","身分驗證","封包過濾"],a:1},
+ {id:8,q:"下列哪一項最適合用於分享威脅情資？",o:["口頭轉述","即時通訊截圖","標準化情資平台","未驗證消息"],a:2},
+ {id:9,q:"資安情蒐中，TTPs 指的是？",o:["工具、技術與流程","測試、追蹤與保護","威脅、趨勢與政策","時間、類型與平台"],a:0},
+ {id:10,q:"分析勒索軟體樣本屬於哪一類型情蒐？",o:["策略型","戰術型","技術型","政策型"],a:2},
+ {id:11,q:"為何資安情資需要定期更新？",o:["節省空間","避免資料過時","提升效能","增加數量"],a:1},
+ {id:12,q:"下列哪一項是分享資安情資時的重要原則？",o:["未經查證即分享","遵守隱私與法規","只分享給熟人","全部公開"],a:1},
+ {id:13,q:"資安情蒐分析後最重要的產出為何？",o:["報告文件","行動建議","圖表","資料庫"],a:1},
+ {id:14,q:"情資可信度評估常用的標準為？",o:["來源與準確性","資料大小","分享速度","顏色分類"],a:0},
+ {id:15,q:"下列何者屬於情資分享的風險？",o:["提升防禦","誤導決策","強化合作","減少攻擊"],a:1},
+ {id:16,q:"資安情蒐可協助組織達成下列何者？",o:["提前防禦","完全免疫","取代防火牆","避免更新"],a:0},
+ {id:17,q:"在情資分析中，交叉比對多來源資料的目的為何？",o:["增加數量","提升可信度","節省時間","降低成本"],a:1},
+ {id:18,q:"下列哪一項最不適合直接作為威脅情資？",o:["未證實傳言","官方漏洞公告","惡意雜湊值","攻擊樣本"],a:0},
+ {id:19,q:"資安情資分享對整體防禦的最大幫助為何？",o:["個別防護","快速應變","隱藏風險","增加複雜度"],a:1},
+ {id:20,q:"資安情蒐、分析與分享的最終目標為？",o:["收集資料","強化決策與防禦能力","增加報告數量","技術展示"],a:1}
 ];
 
-const quiz = document.getElementById("quiz");
+let currentQuestions = [];
 
-questions.forEach((q,i)=>{
-  let html = `<div class="card"><b>${i+1}. ${q[0]}</b><br>`;
-  for(let j=1;j<=4;j++){
-    html += `<label>
-      <input type="radio" name="q${i}" value="${j-1}"> ${q[j]}
-    </label><br>`;
-  }
-  html += `</div>`;
-  quiz.innerHTML += html;
-});
-
-function submitQuiz(){
-  let score = 0;
-  questions.forEach((q,i)=>{
-    const ans = document.querySelector(`input[name="q${i}"]:checked`);
-    if(ans && parseInt(ans.value) === q[5]) score += 5;
+/* ===== 載入題目（隨機）===== */
+window.onload = function(){
+  currentQuestions = [...questions].sort(()=>Math.random()-0.5);
+  const quiz = document.getElementById("quiz");
+  quiz.innerHTML = "";
+  currentQuestions.forEach((q,i)=>{
+    let html = `<div class="question"><b>${i+1}. ${q.q}</b><br>`;
+    q.o.forEach((o,j)=>{
+      html += `<label><input type="radio" name="q${i}" value="${j}"> ${o}</label><br>`;
+    });
+    html += "</div>";
+    quiz.innerHTML += html;
   });
-
-  const record = {
-    class: class.value,
-    no: no.value,
-    name: name.value,
-    score: score,
-    time: new Date().toLocaleString()
-  };
-
-  let data = JSON.parse(localStorage.getItem("records") || "[]");
-  data.push(record);
-  localStorage.setItem("records", JSON.stringify(data));
-
-  alert(`你的成績：${score} 分`);
 }
 
+/* ===== 學生提交 ===== */
+function submitQuiz(){
+  const c = className.value;
+  const n = no.value;
+  const nm = name.value;
+  if(!c || !n || !nm){
+    alert("請填完整學生資料");
+    return;
+  }
+
+  let score = 0;
+  currentQuestions.forEach((q,i)=>{
+    const s = document.querySelector(`input[name="q${i}"]:checked`);
+    if(s && +s.value === q.a) score++;
+  });
+
+  result.innerText = `你的成績：${score} / 20`;
+
+  const data = JSON.parse(localStorage.getItem("records") || "[]");
+  data.push({class:c,no:n,name:nm,score,time:new Date().toLocaleString()});
+  localStorage.setItem("records", JSON.stringify(data));
+  loadRecords();
+}
+
+/* ===== 教師登入 ===== */
+function teacherLogin(){
+  if(teacherPwd.value === TEACHER_PASSWORD){
+    teacherLoginDiv.style.display="none";
+    teacherArea.style.display="block";
+    loadRecords();
+  }else{
+    loginMsg.innerText="❌ 密碼錯誤";
+  }
+}
+
+/* ===== 顯示成績 ===== */
+function loadRecords(){
+  records.innerHTML = "";
+  const data = JSON.parse(localStorage.getItem("records") || "[]");
+  data.forEach(r=>{
+    records.innerHTML += `<tr>
+      <td>${r.class}</td>
+      <td>${r.no}</td>
+      <td>${r.name}</td>
+      <td>${r.score}</td>
+      <td>${r.time}</td>
+    </tr>`;
+  });
+}
+
+/* ===== 清空成績 ===== */
+function clearRecords(){
+  if(confirm("確定清空所有學生成績？")){
+    localStorage.removeItem("records");
+    loadRecords();
+    alert("✅ 成績已清空");
+  }
+}
+
+/* ===== 公佈答案 ===== */
+function showAnswers(){
+  answerDiv.style.display="block";
+  answerKey.innerHTML="";
+  questions.forEach(q=>{
+    answerKey.innerHTML += `<tr>
+      <td>${q.id}</td>
+      <td>${q.q}</td>
+      <td>${q.o[q.a]}</td>
+    </tr>`;
+  });
+}
+
+/* ===== CSV 匯出（UTF-8 + BOM，Excel 不亂碼）===== */
 function exportCSV(){
   const data = JSON.parse(localStorage.getItem("records") || "[]");
-  if(data.length === 0){
-    alert("目前沒有成績");
+  if(!data.length){
+    alert("目前沒有成績可匯出");
     return;
   }
 
@@ -118,22 +196,16 @@ function exportCSV(){
     csv += `"${r.class}","${r.no}","${r.name}","${r.score}","${r.time}"\n`;
   });
 
-  const BOM = "\uFEFF";
-  const blob = new Blob([BOM + csv], {
-    type: "text/csv;charset=utf-8;"
-  });
+  const BOM = "\uFEFF"; // ★ 關鍵
+  const blob = new Blob(
+    [BOM + csv],
+    { type: "text/csv;charset=utf-8;" }
+  );
 
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "資安情蒐分析分享成績.csv";
+  a.download = "資通安全測驗成績.csv";
   a.click();
-}
-
-function clearData(){
-  if(confirm("確定要清空所有成績？")){
-    localStorage.removeItem("records");
-    alert("所有成績已清空");
-  }
 }
 </script>
 
