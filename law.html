@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>資訊倫理與法律測驗</title>
+<style>
+body{font-family:"Microsoft JhengHei",sans-serif;background:#0f172a;color:#e5e7eb;padding:20px;}
+h1,h2,h3{color:#38bdf8;}
+.section{background:#020617;padding:15px;border-radius:8px;margin-bottom:20px;}
+.question{margin-bottom:15px;}
+input{padding:5px;margin:5px;}
+button{background:#38bdf8;border:none;padding:10px 20px;font-size:16px;border-radius:6px;cursor:pointer;margin:5px;}
+button:hover{background:#0ea5e9;}
+button.danger{background:#ef4444;}
+table{width:100%;border-collapse:collapse;margin-top:10px;}
+th,td{border:1px solid #334155;padding:8px;text-align:center;}
+th{background:#1e293b;}
+</style>
+</head>
+<body>
+
+<h1>⚖️ 資訊倫理與法律測驗（20 題）</h1>
+
+<div class="section">
+  <h2>👨‍🎓 學生資料</h2>
+  班級：<input id="className">
+  座號：<input id="no">
+  姓名：<input id="name">
+</div>
+
+<div class="section" id="quiz"></div>
+<button onclick="submitQuiz()">提交測驗</button>
+<h2 id="result"></h2>
+
+<hr>
+
+<div class="section" id="teacherLoginDiv">
+  <h2>🔐 教師登入</h2>
+  教師密碼：<input type="password" id="teacherPwd">
+  <button onclick="teacherLogin()">登入</button>
+  <p id="loginMsg" style="color:#f87171"></p>
+</div>
+
+<div class="section" id="teacherArea" style="display:none">
+  <h2>👨‍🏫 教師成績總覽</h2>
+  <button onclick="exportCSV()">📤 匯出 CSV</button>
+  <button class="danger" onclick="clearRecords()">🗑 清空所有成績</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>班級</th><th>座號</th><th>姓名</th><th>分數</th><th>時間</th>
+      </tr>
+    </thead>
+    <tbody id="records"></tbody>
+  </table>
+
+  <button onclick="showAnswers()">📢 公佈正確答案</button>
+  <div id="answerDiv" style="display:none">
+    <h3>📌 正確答案表</h3>
+    <table>
+      <thead>
+        <tr><th>題號</th><th>題目</th><th>正確答案</th></tr>
+      </thead>
+      <tbody id="answerKey"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const TEACHER_PASSWORD = "teacher123";
+
+/* ===== 題庫：資訊倫理與法律（20 題）===== */
+const questions = [
+ {id:1,q:"下載盜版軟體的法律責任？",o:["合法","無責任","侵害著作權","鼓勵創作"],a:2},
+ {id:2,q:"以下何者屬於個人資料？",o:["學校名稱","天氣","身分證字號","國定假日"],a:2},
+ {id:3,q:"未經同意公開他人照片，可能？",o:["沒問題","侵犯隱私","值得鼓勵","合法"],a:1},
+ {id:4,q:"著作權保護的是？",o:["想法","創意本身","具體表達","設備"],a:2},
+ {id:5,q:"以下何者是合法使用軟體？",o:["破解","共享序號","購買授權","盜拷"],a:2},
+ {id:6,q:"散布假訊息可能造成？",o:["社會混亂","提升信任","合法","無影響"],a:0},
+ {id:7,q:"在網路上辱罵他人，可能涉及？",o:["著作權","誹謗","專利","合法行為"],a:1},
+ {id:8,q:"尊重他人隱私的正確行為？",o:["轉傳聊天紀錄","偷拍","未經同意不公開","公開個資"],a:2},
+ {id:9,q:"下列何者屬於資訊倫理？",o:["尊重智慧財產","大量盜版","散布謠言","駭入帳號"],a:0},
+ {id:10,q:"合法引用他人作品需？",o:["不標示來源","任意修改","標示出處","當成自己"],a:2},
+ {id:11,q:"以下何者可能違反個資法？",o:["保護資料","加密","外洩名單","設定密碼"],a:2},
+ {id:12,q:"未經允許使用他人帳號屬於？",o:["正常行為","未授權存取","分享","倫理行為"],a:1},
+ {id:13,q:"網路匿名是否代表不用負責？",o:["是","否","鼓勵","合法"],a:1},
+ {id:14,q:"智慧財產權不包含？",o:["著作權","專利權","商標權","人身自由"],a:3},
+ {id:15,q:"學生交報告引用資料應？",o:["照抄","不標來源","標註出處","刪作者"],a:2},
+ {id:16,q:"以下何者屬於網路霸凌？",o:["理性討論","惡意攻擊","建議","分享知識"],a:1},
+ {id:17,q:"合法下載音樂方式？",o:["非法網站","購買正版","破解","分享帳號"],a:1},
+ {id:18,q:"個資蒐集應遵守？",o:["最小必要原則","越多越好","公開透明","不用告知"],a:0},
+ {id:19,q:"散布病毒程式可能觸犯？",o:["交通法","刑法","環保法","無責任"],a:1},
+ {id:20,q:"資訊倫理教育目的？",o:["限制使用","提升責任感","禁止網路","不學科技"],a:1}
+];
+
+let currentQuestions = [];
+
+/* ===== 載入題目（隨機）===== */
+window.onload = function(){
+  currentQuestions = [...questions].sort(()=>Math.random()-0.5);
+  const quiz = document.getElementById("quiz");
+  quiz.innerHTML="";
+  currentQuestions.forEach((q,i)=>{
+    let html = `<div class="question"><b>${i+1}. ${q.q}</b><br>`;
+    q.o.forEach((o,j)=>{
+      html+=`<label><input type="radio" name="q${i}" value="${j}"> ${o}</label><br>`;
+    });
+    html+="</div>";
+    quiz.innerHTML+=html;
+  });
+}
+
+/* ===== 學生提交 ===== */
+function submitQuiz(){
+  const c=className.value,n=no.value,nm=name.value;
+  if(!c||!n||!nm){alert("請填完整學生資料");return;}
+
+  let score=0;
+  currentQuestions.forEach((q,i)=>{
+    const s=document.querySelector(`input[name="q${i}"]:checked`);
+    if(s && +s.value===q.a) score++;
+  });
+
+  result.innerText=`你的成績：${score} / 20`;
+
+  const data=JSON.parse(localStorage.getItem("records")||"[]");
+  data.push({class:c,no:n,name:nm,score,time:new Date().toLocaleString()});
+  localStorage.setItem("records",JSON.stringify(data));
+  loadRecords();
+}
+
+/* ===== 教師登入 ===== */
+function teacherLogin(){
+  if(teacherPwd.value===TEACHER_PASSWORD){
+    teacherLoginDiv.style.display="none";
+    teacherArea.style.display="block";
+    loadRecords();
+  }else loginMsg.innerText="❌ 密碼錯誤";
+}
+
+/* ===== 顯示成績 ===== */
+function loadRecords(){
+  records.innerHTML="";
+  const data=JSON.parse(localStorage.getItem("records")||"[]");
+  data.forEach(r=>{
+    records.innerHTML+=`<tr>
+      <td>${r.class}</td><td>${r.no}</td><td>${r.name}</td>
+      <td>${r.score}</td><td>${r.time}</td></tr>`;
+  });
+}
+
+/* ===== 清空成績 ===== */
+function clearRecords(){
+  if(confirm("確定清空所有學生成績？")){
+    localStorage.removeItem("records");
+    loadRecords();
+    alert("✅ 成績已清空");
+  }
+}
+
+/* ===== 公佈答案 ===== */
+function showAnswers(){
+  answerDiv.style.display="block";
+  answerKey.innerHTML="";
+  questions.forEach(q=>{
+    answerKey.innerHTML+=`<tr>
+      <td>${q.id}</td><td>${q.q}</td><td>${q.o[q.a]}</td></tr>`;
+  });
+}
+
+/* ===== CSV 匯出（UTF-8 + BOM）===== */
+function exportCSV(){
+  const data=JSON.parse(localStorage.getItem("records")||"[]");
+  if(!data.length){alert("沒有成績");return;}
+
+  let csv="班級,座號,姓名,分數,時間\n";
+  data.forEach(r=>{
+    csv+=`"${r.class}","${r.no}","${r.name}","${r.score}","${r.time}"\n`;
+  });
+
+  const BOM="\uFEFF";
+  const blob=new Blob([BOM+csv],{type:"text/csv;charset=utf-8;"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="資訊倫理與法律測驗成績.csv";
+  a.click();
+}
+</script>
+
+</body>
+</html>
