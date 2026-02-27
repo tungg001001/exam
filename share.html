@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>資安情蒐、分析與分享測驗（20 題）</title>
+<style>
+body{
+  font-family:"Microsoft JhengHei";
+  background:#0f172a;
+  color:#e5e7eb;
+  padding:20px;
+}
+h1{color:#38bdf8;}
+.card{
+  background:#020617;
+  padding:15px;
+  border-radius:10px;
+  margin-bottom:15px;
+}
+button{
+  padding:8px 16px;
+  margin:5px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+.submit{background:#22c55e;}
+.export{background:#38bdf8;}
+.clear{background:#ef4444;}
+</style>
+</head>
+
+<body>
+
+<h1>🕵️‍♂️ 資安情蒐、分析與分享（20 題）</h1>
+
+<div class="card">
+班級：<input id="class"><br>
+座號：<input id="no"><br>
+姓名：<input id="name"><br>
+</div>
+
+<form id="quiz"></form>
+
+<button class="submit" onclick="submitQuiz()">提交測驗</button>
+<button class="export" onclick="exportCSV()">教師匯出 CSV</button>
+<button class="clear" onclick="clearData()">清空所有成績</button>
+
+<script>
+const questions = [
+["下列何者屬於開放來源情蒐（OSINT）？","入侵伺服器","社群平台公開貼文","竊聽電話","安裝木馬",1],
+["OSINT 的資料來源不包含？","政府公開資料","新聞網站","私人加密通訊","社群媒體",2],
+["蒐集情資時最重要的原則是？","數量","速度","合法性","隱密性",2],
+["下列哪項是情資分析的目的？","蒐集更多資料","判斷威脅","入侵系統","散布謠言",1],
+["情資分析常用的方法不包含？","比對","分類","驗證","破壞",3],
+["錯誤情資可能造成什麼後果？","提升安全","誤判威脅","節省成本","增加效率",1],
+["分享情資時應注意？","立即公開","合法與授權","隨意轉傳","匿名即可",1],
+["下列何者屬於假訊息特徵？","多方查證","來源不明","官方公告","資料一致",1],
+["情蒐時使用假帳號最主要的風險是？","效率低","觸法","資料太多","分析困難",1],
+["情資生命週期第一步是？","分析","蒐集","分享","行動",1],
+["分析情資時應優先考慮？","個人感覺","資料可信度","傳播速度","情緒反應",1],
+["下列哪個工具常用於 OSINT？","Wireshark","Google","Metasploit","Nmap",1],
+["社群媒體情蒐常見風險？","資料不足","隱私侵害","無資料","無風險",1],
+["情資分享對象應為？","任何人","授權單位","匿名網友","社群群組",1],
+["未經查證轉傳訊息可能涉及？","表達自由","資訊倫理問題","提升知識","社交互動",1],
+["情資分析的核心能力是？","程式設計","批判思考","社交能力","操作系統",1],
+["下列何者屬於合法情蒐？","釣魚郵件","公開年報","側錄通話","破解帳號",1],
+["情資共享平台的主要功能？","娛樂","交流與防禦","駭客教學","散布謠言",1],
+["情資過期會造成？","風險增加","分析準確","威脅降低","效率提升",0],
+["資安情蒐的最終目的是？","攻擊","防禦與決策","炫耀","販售資料",1]
+];
+
+const quiz = document.getElementById("quiz");
+
+questions.forEach((q,i)=>{
+  let html = `<div class="card"><b>${i+1}. ${q[0]}</b><br>`;
+  for(let j=1;j<=4;j++){
+    html += `<label>
+      <input type="radio" name="q${i}" value="${j-1}"> ${q[j]}
+    </label><br>`;
+  }
+  html += `</div>`;
+  quiz.innerHTML += html;
+});
+
+function submitQuiz(){
+  let score = 0;
+  questions.forEach((q,i)=>{
+    const ans = document.querySelector(`input[name="q${i}"]:checked`);
+    if(ans && parseInt(ans.value) === q[5]) score+=5;
+  });
+
+  const record = {
+    class:class.value,
+    no:no.value,
+    name:name.value,
+    score,
+    time:new Date().toLocaleString()
+  };
+
+  let data = JSON.parse(localStorage.getItem("records")||"[]");
+  data.push(record);
+  localStorage.setItem("records",JSON.stringify(data));
+
+  alert(`你的成績：${score} 分`);
+}
+
+function exportCSV(){
+  const data = JSON.parse(localStorage.getItem("records")||"[]");
+  if(data.length===0){alert("無資料");return;}
+
+  let csv = "班級,座號,姓名,分數,時間\n";
+  data.forEach(r=>{
+    csv += `"${r.class}","${r.no}","${r.name}","${r.score}","${r.time}"\n`;
+  });
+
+  const BOM = "\uFEFF";
+  const blob = new Blob([BOM + csv],{type:"text/csv;charset=utf-8;"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "資安情蒐分析分享成績.csv";
+  a.click();
+}
+
+function clearData(){
+  if(confirm("確定清空所有成績？")){
+    localStorage.removeItem("records");
+    alert("已清空");
+  }
+}
+</script>
+
+</body>
+</html>
