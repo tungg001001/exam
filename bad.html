@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>資通安全基本概念測驗</title>
+<style>
+body{font-family:"Microsoft JhengHei",sans-serif;background:#0f172a;color:#e5e7eb;padding:20px;}
+h1,h2,h3{color:#38bdf8;}
+.section{background:#020617;padding:15px;border-radius:8px;margin-bottom:20px;}
+.question{margin-bottom:15px;}
+input{padding:5px;margin:5px;}
+button{background:#38bdf8;border:none;padding:10px 20px;font-size:16px;border-radius:6px;cursor:pointer;margin:5px;}
+button:hover{background:#0ea5e9;}
+button.danger{background:#ef4444;}
+table{width:100%;border-collapse:collapse;margin-top:10px;}
+th,td{border:1px solid #334155;padding:8px;text-align:center;}
+th{background:#1e293b;}
+</style>
+</head>
+<body>
+
+<h1>🛡️ 惡意程式測驗（20 題）</h1>
+
+<div class="section">
+  <h2>👨‍🎓 學生資料</h2>
+  班級：<input id="className">
+  座號：<input id="no">
+  姓名：<input id="name">
+</div>
+
+<div class="section" id="quiz"></div>
+<button onclick="submitQuiz()">提交測驗</button>
+<h2 id="result"></h2>
+
+<hr>
+
+<div class="section" id="teacherLoginDiv">
+  <h2>🔐 教師登入</h2>
+  教師密碼：<input type="password" id="teacherPwd">
+  <button onclick="teacherLogin()">登入</button>
+  <p id="loginMsg" style="color:#f87171"></p>
+</div>
+
+<div class="section" id="teacherArea" style="display:none">
+  <h2>👨‍🏫 教師成績總覽</h2>
+  <button onclick="exportCSV()">📤 匯出 CSV</button>
+  <button class="danger" onclick="clearRecords()">🗑 清空所有成績</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>班級</th><th>座號</th><th>姓名</th><th>分數</th><th>時間</th>
+      </tr>
+    </thead>
+    <tbody id="records"></tbody>
+  </table>
+
+  <button onclick="showAnswers()">📢 公佈正確答案</button>
+  <div id="answerDiv" style="display:none">
+    <h3>📌 正確答案表</h3>
+    <table>
+      <thead>
+        <tr><th>題號</th><th>題目</th><th>正確答案</th></tr>
+      </thead>
+      <tbody id="answerKey"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const TEACHER_PASSWORD = "teacher123";
+
+/* ===== 題庫：惡意程式（20 題）===== */
+const questions = [
+ {id:1,q:"病毒 (Virus) 的特徵是？",o:["自我複製並感染檔案","只存在於硬體","不可被殺毒軟體偵測","增加網速"],a:0},
+ {id:2,q:"蠕蟲 (Worm) 與病毒不同之處？",o:["可自我傳播無需宿主檔案","無害","需要使用者操作才能傳播","只能感染系統核心"],a:0},
+ {id:3,q:"木馬程式 (Trojan) 主要功能？",o:["偽裝成合法程式執行惡意行為","自動更新系統","防火牆功能","加速網路"],a:0},
+ {id:4,q:"勒索軟體 (Ransomware) 行為是？",o:["加密使用者檔案索取贖金","提升系統速度","備份資料","掃描漏洞"],a:0},
+ {id:5,q:"間諜軟體 (Spyware) 主要作用？",o:["蒐集使用者敏感資料","加密網路","清理系統垃圾","更新軟體"],a:0},
+ {id:6,q:"Rootkit 目的是？",o:["隱藏惡意程式以逃避偵測","提升硬體效能","掃描病毒","管理使用者帳號"],a:0},
+ {id:7,q:"Adware 的特徵？",o:["顯示廣告並可能追蹤使用者","自我複製","加密檔案","控制防火牆"],a:0},
+ {id:8,q:"Bootkit 攻擊對象？",o:["開機扇區","瀏覽器","防火牆","VPN"],a:0},
+ {id:9,q:"Keylogger 主要用途？",o:["紀錄使用者鍵盤輸入","提升速度","加密網路","掃描漏洞"],a:0},
+ {id:10,q:"蠕蟲常透過何種方式快速傳播？",o:["網路漏洞","手動安裝","硬體損壞","USB 不可用"],a:0},
+ {id:11,q:"何種惡意程式最常偽裝成合法軟體？",o:["木馬程式","病毒","蠕蟲","勒索軟體"],a:0},
+ {id:12,q:"下列哪一個不是勒索軟體行為？",o:["公開敏感資料索取贖金","加密檔案","刪除備份","提升網速"],a:3},
+ {id:13,q:"零日攻擊常結合何種惡意程式？",o:["病毒或蠕蟲","防火牆","VPN","資料壓縮"],a:0},
+ {id:14,q:"惡意程式傳播方式不包括？",o:["防毒軟體更新","Email 附件","下載惡意軟體","網頁漏洞"],a:0},
+ {id:15,q:"Worm 與病毒差異？",o:["不依賴宿主檔案自我傳播","病毒不會破壞檔案","Worm 不會傳播","病毒可自我更新"],a:0},
+ {id:16,q:"防範惡意程式最重要措施？",o:["定期更新防毒軟體和系統","加速網路","提升硬體效能","增加RAM"],a:0},
+ {id:17,q:"惡意程式可透過何種媒介傳播？",o:["USB、Email、網路下載","僅透過硬體","僅透過防火牆","僅透過系統更新"],a:0},
+ {id:18,q:"何者為蠕蟲攻擊的危害？",o:["大量網路流量造成服務癱瘓","提升使用者效能","清理系統垃圾","加速下載"],a:0},
+ {id:19,q:"何者為木馬程式風險？",o:["竊取帳號密碼","提升網速","清理垃圾檔案","掃描病毒"],a:0},
+ {id:20,q:"下列哪種程式通常不被視為惡意？",o:["防毒軟體","病毒","蠕蟲","木馬"],a:0}
+];
+
+let currentQuestions = [];
+
+/* ===== 載入題目（隨機）===== */
+window.onload = function(){
+  currentQuestions = [...questions].sort(()=>Math.random()-0.5);
+  const quiz = document.getElementById("quiz");
+  quiz.innerHTML = "";
+  currentQuestions.forEach((q,i)=>{
+    let html = `<div class="question"><b>${i+1}. ${q.q}</b><br>`;
+    q.o.forEach((o,j)=>{
+      html += `<label><input type="radio" name="q${i}" value="${j}"> ${o}</label><br>`;
+    });
+    html += "</div>";
+    quiz.innerHTML += html;
+  });
+}
+
+/* ===== 學生提交 ===== */
+function submitQuiz(){
+  const c = className.value;
+  const n = no.value;
+  const nm = name.value;
+  if(!c || !n || !nm){
+    alert("請填完整學生資料");
+    return;
+  }
+
+  let score = 0;
+  currentQuestions.forEach((q,i)=>{
+    const s = document.querySelector(`input[name="q${i}"]:checked`);
+    if(s && +s.value === q.a) score++;
+  });
+
+  result.innerText = `你的成績：${score} / 20`;
+
+  const data = JSON.parse(localStorage.getItem("records") || "[]");
+  data.push({class:c,no:n,name:nm,score,time:new Date().toLocaleString()});
+  localStorage.setItem("records", JSON.stringify(data));
+  loadRecords();
+}
+
+/* ===== 教師登入 ===== */
+function teacherLogin(){
+  if(teacherPwd.value === TEACHER_PASSWORD){
+    teacherLoginDiv.style.display="none";
+    teacherArea.style.display="block";
+    loadRecords();
+  }else{
+    loginMsg.innerText="❌ 密碼錯誤";
+  }
+}
+
+/* ===== 顯示成績 ===== */
+function loadRecords(){
+  records.innerHTML = "";
+  const data = JSON.parse(localStorage.getItem("records") || "[]");
+  data.forEach(r=>{
+    records.innerHTML += `<tr>
+      <td>${r.class}</td>
+      <td>${r.no}</td>
+      <td>${r.name}</td>
+      <td>${r.score}</td>
+      <td>${r.time}</td>
+    </tr>`;
+  });
+}
+
+/* ===== 清空成績 ===== */
+function clearRecords(){
+  if(confirm("確定清空所有學生成績？")){
+    localStorage.removeItem("records");
+    loadRecords();
+    alert("✅ 成績已清空");
+  }
+}
+
+/* ===== 公佈答案 ===== */
+function showAnswers(){
+  answerDiv.style.display="block";
+  answerKey.innerHTML="";
+  questions.forEach(q=>{
+    answerKey.innerHTML += `<tr>
+      <td>${q.id}</td>
+      <td>${q.q}</td>
+      <td>${q.o[q.a]}</td>
+    </tr>`;
+  });
+}
+
+/* ===== CSV 匯出（UTF-8 + BOM，Excel 不亂碼）===== */
+function exportCSV(){
+  const data = JSON.parse(localStorage.getItem("records") || "[]");
+  if(!data.length){
+    alert("目前沒有成績可匯出");
+    return;
+  }
+
+  let csv = "班級,座號,姓名,分數,時間\n";
+  data.forEach(r=>{
+    csv += `"${r.class}","${r.no}","${r.name}","${r.score}","${r.time}"\n`;
+  });
+
+  const BOM = "\uFEFF";
+  const blob = new Blob([BOM + csv], { type: "text/csv;charset=utf-8;" });
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "惡意程式測驗成績.csv";
+  a.click();
+}
+</script>
+
+</body>
+</html>
