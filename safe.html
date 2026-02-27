@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>資通安全基本概念測驗</title>
+<style>
+body{font-family:"Microsoft JhengHei",sans-serif;background:#0f172a;color:#e5e7eb;padding:20px;}
+h1,h2,h3{color:#38bdf8;}
+.section{background:#020617;padding:15px;border-radius:8px;margin-bottom:20px;}
+.question{margin-bottom:15px;}
+input{padding:5px;margin:5px;}
+button{background:#38bdf8;border:none;padding:10px 20px;font-size:16px;border-radius:6px;cursor:pointer;margin:5px;}
+button:hover{background:#0ea5e9;}
+button.danger{background:#ef4444;}
+table{width:100%;border-collapse:collapse;margin-top:10px;}
+th,td{border:1px solid #334155;padding:8px;text-align:center;}
+th{background:#1e293b;}
+</style>
+</head>
+<body>
+
+<h1>🛡️ 網路安全測驗（20 題）</h1>
+
+<div class="section">
+  <h2>👨‍🎓 學生資料</h2>
+  班級：<input id="className">
+  座號：<input id="no">
+  姓名：<input id="name">
+</div>
+
+<div class="section" id="quiz"></div>
+<button onclick="submitQuiz()">提交測驗</button>
+<h2 id="result"></h2>
+
+<hr>
+
+<div class="section" id="teacherLoginDiv">
+  <h2>🔐 教師登入</h2>
+  教師密碼：<input type="password" id="teacherPwd">
+  <button onclick="teacherLogin()">登入</button>
+  <p id="loginMsg" style="color:#f87171"></p>
+</div>
+
+<div class="section" id="teacherArea" style="display:none">
+  <h2>👨‍🏫 教師成績總覽</h2>
+  <button onclick="exportCSV()">📤 匯出 CSV</button>
+  <button class="danger" onclick="clearRecords()">🗑 清空所有成績</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>班級</th><th>座號</th><th>姓名</th><th>分數</th><th>時間</th>
+      </tr>
+    </thead>
+    <tbody id="records"></tbody>
+  </table>
+
+  <button onclick="showAnswers()">📢 公佈正確答案</button>
+  <div id="answerDiv" style="display:none">
+    <h3>📌 正確答案表</h3>
+    <table>
+      <thead>
+        <tr><th>題號</th><th>題目</th><th>正確答案</th></tr>
+      </thead>
+      <tbody id="answerKey"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const TEACHER_PASSWORD = "teacher123";
+
+/* ===== 題庫：網路安全（20 題）===== */
+const questions = [
+ {id:1,q:"DDoS 攻擊主要目的是？",o:["竊取資料","癱瘓服務","加速網路","加密資料"],a:1},
+ {id:2,q:"防火牆主要功能為何？",o:["阻擋未授權連線","加速網路","加密資料","管理帳號"],a:0},
+ {id:3,q:"什麼是釣魚（Phishing）？",o:["駭客掃描漏洞","欺騙用戶提供敏感資訊","加密檔案","資料備份"],a:1},
+ {id:4,q:"VPN 的主要作用是？",o:["加密網路連線","提升下載速度","管理使用者","控制防火牆"],a:0},
+ {id:5,q:"HTTPS 與 HTTP 的差異是？",o:["加密傳輸","不同網域","支援舊版瀏覽器","沒有差異"],a:0},
+ {id:6,q:"SQL 注入攻擊目標是？",o:["資料庫","網頁樣式","瀏覽器","IP 位址"],a:0},
+ {id:7,q:"XSS 攻擊會導致？",o:["注入惡意腳本","資料備份","VPN 加密","DDoS"],a:0},
+ {id:8,q:"帳號多因素驗證（MFA）可增加什麼？",o:["安全性","速度","硬體效能","網頁設計"],a:0},
+ {id:9,q:"勒索軟體主要危害？",o:["加密檔案索取贖金","提升網速","管理帳號","資料壓縮"],a:0},
+ {id:10,q:"社交工程攻擊常利用？",o:["人性弱點","防火牆","加密技術","硬體故障"],a:0},
+ {id:11,q:"ARP 欺騙主要影響？",o:["網路流量攔截","硬碟容量","系統溫度","電源管理"],a:0},
+ {id:12,q:"什麼是 Zero-Day 漏洞？",o:["未知漏洞","舊版本漏洞","公開漏洞","已修補漏洞"],a:0},
+ {id:13,q:"針對密碼安全，下列何者正確？",o:["使用長且複雜密碼","使用生日","重複使用密碼","簡單連號"],a:0},
+ {id:14,q:"防範網路釣魚應採取？",o:["驗證網站 URL、使用 MFA","隨意點擊連結","下載未知檔案","公開密碼"],a:0},
+ {id:15,q:"ARP Spoofing 攻擊方式是？",o:["偽造 MAC 位址欺騙網路","加密封包","加快網路","資料備份"],a:0},
+ {id:16,q:"什麼是 Botnet？",o:["被駭控制的電腦群","加密資料群","VPN 節點","防火牆規則"],a:0},
+ {id:17,q:"IDS/IPS 主要功能？",o:["偵測/阻擋攻擊","加速網路","管理帳號","資料加密"],a:0},
+ {id:18,q:"網路釣魚常透過什麼途徑？",o:["Email、訊息","硬體損壞","系統更新","網頁快取"],a:0},
+ {id:19,q:"什麼是社交工程防範？",o:["教育用戶不要隨意提供資訊","加密硬碟","防火牆規則","升級硬體"],a:0},
+ {id:20,q:"網路安全三要素 CIA 是指？",o:["機密性、完整性、可用性","便利性、速度、成本","IP、MAC、DNS","登入、密碼、PIN"],a:0}
+];
+
+let currentQuestions = [];
+
+/* ===== 載入題目（隨機）===== */
+window.onload = function(){
+  currentQuestions = [...questions].sort(()=>Math.random()-0.5);
+  const quiz = document.getElementById("quiz");
+  quiz.innerHTML = "";
+  currentQuestions.forEach((q,i)=>{
+    let html = `<div class="question"><b>${i+1}. ${q.q}</b><br>`;
+    q.o.forEach((o,j)=>{
+      html += `<label><input type="radio" name="q${i}" value="${j}"> ${o}</label><br>`;
+    });
+    html += "</div>";
+    quiz.innerHTML += html;
+  });
+}
+
+/* ===== 學生提交 ===== */
+function submitQuiz(){
+  const c = className.value;
+  const n = no.value;
+  const nm = name.value;
+  if(!c || !n || !nm){
+    alert("請填完整學生資料");
+    return;
+  }
+
+  let score = 0;
+  currentQuestions.forEach((q,i)=>{
+    const s = document.querySelector(`input[name="q${i}"]:checked`);
+    if(s && +s.value === q.a) score++;
+  });
+
+  result.innerText = `你的成績：${score} / 20`;
+
+  const data = JSON.parse(localStorage.getItem("records") || "[]");
+  data.push({class:c,no:n,name:nm,score,time:new Date().toLocaleString()});
+  localStorage.setItem("records", JSON.stringify(data));
+  loadRecords();
+}
+
+/* ===== 教師登入 ===== */
+function teacherLogin(){
+  if(teacherPwd.value === TEACHER_PASSWORD){
+    teacherLoginDiv.style.display="none";
+    teacherArea.style.display="block";
+    loadRecords();
+  }else{
+    loginMsg.innerText="❌ 密碼錯誤";
+  }
+}
+
+/* ===== 顯示成績 ===== */
+function loadRecords(){
+  records.innerHTML = "";
+  const data = JSON.parse(localStorage.getItem("records") || "[]");
+  data.forEach(r=>{
+    records.innerHTML += `<tr>
+      <td>${r.class}</td>
+      <td>${r.no}</td>
+      <td>${r.name}</td>
+      <td>${r.score}</td>
+      <td>${r.time}</td>
+    </tr>`;
+  });
+}
+
+/* ===== 清空成績 ===== */
+function clearRecords(){
+  if(confirm("確定清空所有學生成績？")){
+    localStorage.removeItem("records");
+    loadRecords();
+    alert("✅ 成績已清空");
+  }
+}
+
+/* ===== 公佈答案 ===== */
+function showAnswers(){
+  answerDiv.style.display="block";
+  answerKey.innerHTML="";
+  questions.forEach(q=>{
+    answerKey.innerHTML += `<tr>
+      <td>${q.id}</td>
+      <td>${q.q}</td>
+      <td>${q.o[q.a]}</td>
+    </tr>`;
+  });
+}
+
+/* ===== CSV 匯出（UTF-8 + BOM，Excel 不亂碼）===== */
+function exportCSV(){
+  const data = JSON.parse(localStorage.getItem("records") || "[]");
+  if(!data.length){
+    alert("目前沒有成績可匯出");
+    return;
+  }
+
+  let csv = "班級,座號,姓名,分數,時間\n";
+  data.forEach(r=>{
+    csv += `"${r.class}","${r.no}","${r.name}","${r.score}","${r.time}"\n`;
+  });
+
+  const BOM = "\uFEFF";
+  const blob = new Blob([BOM + csv], { type: "text/csv;charset=utf-8;" });
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "網路安全測驗成績.csv";
+  a.click();
+}
+</script>
+
+</body>
+</html>
