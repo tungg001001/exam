@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>資通安全基本概念測驗</title>
+<style>
+body{font-family:"Microsoft JhengHei",sans-serif;background:#0f172a;color:#e5e7eb;padding:20px;}
+h1,h2,h3{color:#38bdf8;}
+.section{background:#020617;padding:15px;border-radius:8px;margin-bottom:20px;}
+.question{margin-bottom:15px;}
+input{padding:5px;margin:5px;}
+button{background:#38bdf8;border:none;padding:10px 20px;font-size:16px;border-radius:6px;cursor:pointer;margin:5px;}
+button:hover{background:#0ea5e9;}
+button.danger{background:#ef4444;}
+table{width:100%;border-collapse:collapse;margin-top:10px;}
+th,td{border:1px solid #334155;padding:8px;text-align:center;}
+th{background:#1e293b;}
+</style>
+</head>
+<body>
+
+<h1>🛡️ Kali 與漏洞利用測驗（20 題）</h1>
+
+<div class="section">
+  <h2>👨‍🎓 學生資料</h2>
+  班級：<input id="className">
+  座號：<input id="no">
+  姓名：<input id="name">
+</div>
+
+<div class="section" id="quiz"></div>
+<button onclick="submitQuiz()">提交測驗</button>
+<h2 id="result"></h2>
+
+<hr>
+
+<div class="section" id="teacherLoginDiv">
+  <h2>🔐 教師登入</h2>
+  教師密碼：<input type="password" id="teacherPwd">
+  <button onclick="teacherLogin()">登入</button>
+  <p id="loginMsg" style="color:#f87171"></p>
+</div>
+
+<div class="section" id="teacherArea" style="display:none">
+  <h2>👨‍🏫 教師成績總覽</h2>
+  <button onclick="exportCSV()">📤 匯出 CSV</button>
+  <button class="danger" onclick="clearRecords()">🗑 清空所有成績</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>班級</th><th>座號</th><th>姓名</th><th>分數</th><th>時間</th>
+      </tr>
+    </thead>
+    <tbody id="records"></tbody>
+  </table>
+
+  <button onclick="showAnswers()">📢 公佈正確答案</button>
+  <div id="answerDiv" style="display:none">
+    <h3>📌 正確答案表</h3>
+    <table>
+      <thead>
+        <tr><th>題號</th><th>題目</th><th>正確答案</th></tr>
+      </thead>
+      <tbody id="answerKey"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const TEACHER_PASSWORD = "teacher123";
+
+/* ===== 題庫：Kali 與漏洞利用（20 題）===== */
+const questions = [
+ {id:1,q:"Kali Linux 主要用途？",o:["滲透測試與安全評估","辦公文書","網頁設計","資料備份"],a:0},
+ {id:2,q:"Metasploit 是？",o:["漏洞利用框架","加密工具","防火牆","資料庫"],a:0},
+ {id:3,q:"nmap 在 Kali 用途？",o:["掃描網路與端口","文字編輯","網頁開發","備份資料"],a:0},
+ {id:4,q:"使用 Kali 可做什麼？",o:["滲透測試與漏洞分析","SEO 優化","資料整理","網站維護"],a:0},
+ {id:5,q:"Kali 中 Hydra 用途？",o:["暴力破解密碼","資料備份","防火牆設置","加速網路"],a:0},
+ {id:6,q:"Nikto 工具作用？",o:["網站漏洞掃描","文字編輯","網頁設計","資料分析"],a:0},
+ {id:7,q:"OWASP ZAP 主要用途？",o:["Web 漏洞掃描","加密資料","備份資料","資料分析"],a:0},
+ {id:8,q:"使用 Kali 掃描 SSH 端口工具？",o:["nmap","Excel","Word","Photoshop"],a:0},
+ {id:9,q:"滲透測試第一步？",o:["資訊收集","漏洞利用","資料刪除","網站維護"],a:0},
+ {id:10,q:"漏洞利用前必須？",o:["合法授權","加速網站","增加流量","SEO 優化"],a:0},
+ {id:11,q:"SQL Injection 測試工具？",o:["sqlmap","nmap","Hydra","Wireshark"],a:0},
+ {id:12,q:"XSS 測試方法？",o:["插入腳本","加密資料","備份資料","SEO 分析"],a:0},
+ {id:13,q:"Kali 中 Ettercap 功能？",o:["中間人攻擊 (MITM)","網頁設計","資料備份","加速網路"],a:0},
+ {id:14,q:"滲透測試報告目的？",o:["改善系統安全","SEO 優化","增加流量","網站維護"],a:0},
+ {id:15,q:"Kali 中 Wireshark 用途？",o:["封包分析","加密資料","備份資料","網站維護"],a:0},
+ {id:16,q:"漏洞修補前應先？",o:["確認漏洞與影響範圍","增加流量","SEO 優化","備份資料"],a:0},
+ {id:17,q:"Metasploit payload 是？",o:["攻擊載荷","加密工具","備份程式","網站維護"],a:0},
+ {id:18,q:"滲透測試遵守？",o:["合法授權","隨意掃描","SEO 優化","增加流量"],a:0},
+ {id:19,q:"Kali 安裝後更新指令？",o:["apt update && apt upgrade","加密資料","SEO 優化","資料備份"],a:0},
+ {id:20,q:"滲透測試結果可用於？",o:["改善防禦策略","SEO 分析","增加訪問量","網站維護"],a:0}
+];
+
+let currentQuestions = [];
+
+/* ===== 載入題目（隨機）===== */
+window.onload = function(){
+  currentQuestions = [...questions].sort(()=>Math.random()-0.5);
+  const quiz = document.getElementById("quiz");
+  quiz.innerHTML = "";
+  currentQuestions.forEach((q,i)=>{
+    let html = `<div class="question"><b>${i+1}. ${q.q}</b><br>`;
+    q.o.forEach((o,j)=>{
+      html += `<label><input type="radio" name="q${i}" value="${j}"> ${o}</label><br>`;
+    });
+    html += "</div>";
+    quiz.innerHTML += html;
+  });
+}
+
+/* ===== 學生提交 ===== */
+function submitQuiz(){
+  const c = className.value;
+  const n = no.value;
+  const nm = name.value;
+  if(!c || !n || !nm){
+    alert("請填完整學生資料");
+    return;
+  }
+
+  let score = 0;
+  currentQuestions.forEach((q,i)=>{
+    const s = document.querySelector(`input[name="q${i}"]:checked`);
+    if(s && +s.value === q.a) score++;
+  });
+
+  result.innerText = `你的成績：${score} / 20`;
+
+  const data = JSON.parse(localStorage.getItem("records") || "[]");
+  data.push({class:c,no:n,name:nm,score,time:new Date().toLocaleString()});
+  localStorage.setItem("records", JSON.stringify(data));
+  loadRecords();
+}
+
+/* ===== 教師登入 ===== */
+function teacherLogin(){
+  if(teacherPwd.value === TEACHER_PASSWORD){
+    teacherLoginDiv.style.display="none";
+    teacherArea.style.display="block";
+    loadRecords();
+  }else{
+    loginMsg.innerText="❌ 密碼錯誤";
+  }
+}
+
+/* ===== 顯示成績 ===== */
+function loadRecords(){
+  records.innerHTML = "";
+  const data = JSON.parse(localStorage.getItem("records") || "[]");
+  data.forEach(r=>{
+    records.innerHTML += `<tr>
+      <td>${r.class}</td>
+      <td>${r.no}</td>
+      <td>${r.name}</td>
+      <td>${r.score}</td>
+      <td>${r.time}</td>
+    </tr>`;
+  });
+}
+
+/* ===== 清空成績 ===== */
+function clearRecords(){
+  if(confirm("確定清空所有學生成績？")){
+    localStorage.removeItem("records");
+    loadRecords();
+    alert("✅ 成績已清空");
+  }
+}
+
+/* ===== 公佈答案 ===== */
+function showAnswers(){
+  answerDiv.style.display="block";
+  answerKey.innerHTML="";
+  questions.forEach(q=>{
+    answerKey.innerHTML += `<tr>
+      <td>${q.id}</td>
+      <td>${q.q}</td>
+      <td>${q.o[q.a]}</td>
+    </tr>`;
+  });
+}
+
+/* ===== CSV 匯出（UTF-8 + BOM，Excel 不亂碼）===== */
+function exportCSV(){
+  const data = JSON.parse(localStorage.getItem("records") || "[]");
+  if(!data.length){
+    alert("目前沒有成績可匯出");
+    return;
+  }
+
+  let csv = "班級,座號,姓名,分數,時間\n";
+  data.forEach(r=>{
+    csv += `"${r.class}","${r.no}","${r.name}","${r.score}","${r.time}"\n`;
+  });
+
+  const BOM = "\uFEFF";
+  const blob = new Blob([BOM + csv], { type: "text/csv;charset=utf-8;" });
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "Kali_與漏洞利用測驗成績.csv";
+  a.click();
+}
+</script>
+
+</body>
+</html>
