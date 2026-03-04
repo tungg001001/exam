@@ -122,9 +122,9 @@ window.onload = function(){
 
 /* ===== 學生提交 ===== */
 function submitQuiz(){
-  const c = document.getElementById("className").value.trim();
-  const n = document.getElementById("no").value.trim();
-  const nm = document.getElementById("studentName").value.trim();
+  const c = document.getElementById("className").value.replace(/\s/g,'');
+  const n = document.getElementById("no").value.replace(/\s/g,'');
+  const nm = document.getElementById("studentName").value.replace(/\s/g,'');
 
   if(!c || !n || !nm){
     alert("請填完整學生資料");
