@@ -25,7 +25,7 @@ th{background:#1e293b;}
   <h2>👨‍🎓 學生資料</h2>
   班級：<input id="className">
   座號：<input id="no">
-  姓名：<input id="name">
+  姓名：<input id="studentName">
 </div>
 
 <div class="section" id="quiz"></div>
@@ -124,7 +124,7 @@ window.onload = function(){
 function submitQuiz(){
   const c = document.getElementById("className").value;
   const n = document.getElementById("no").value;
-  const nm = document.getElementById("name").value;
+  const nm = document.getElementById("studentName").value;
 
   if(!c || !n || !nm){
     alert("請填完整學生資料");
