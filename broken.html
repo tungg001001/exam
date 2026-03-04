@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<title>資通安全基本概念測驗</title>
+<title>儲存裝置破壞測驗</title>
 <style>
 body{font-family:"Microsoft JhengHei",sans-serif;background:#0f172a;color:#e5e7eb;padding:20px;}
 h1,h2,h3{color:#38bdf8;}
@@ -25,7 +25,7 @@ th{background:#1e293b;}
   <h2>👨‍🎓 學生資料</h2>
   班級：<input id="className">
   座號：<input id="no">
-  姓名：<input id="name">
+  姓名：<input id="studentName">
 </div>
 
 <div class="section" id="quiz"></div>
@@ -96,9 +96,18 @@ const questions = [
 
 let currentQuestions = [];
 
-/* ===== 載入題目（隨機）===== */
+/* ===== 題目隨機排列 ===== */
+function shuffle(array){
+  for(let i=array.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+/* ===== 載入題目 ===== */
 window.onload = function(){
-  currentQuestions = [...questions].sort(()=>Math.random()-0.5);
+  currentQuestions = shuffle([...questions]);
   const quiz = document.getElementById("quiz");
   quiz.innerHTML = "";
   currentQuestions.forEach((q,i)=>{
@@ -113,9 +122,9 @@ window.onload = function(){
 
 /* ===== 學生提交 ===== */
 function submitQuiz(){
-  const c = className.value;
-  const n = no.value;
-  const nm = name.value;
+  const c = document.getElementById("className").value.trim();
+  const n = document.getElementById("no").value.trim();
+  const nm = document.getElementById("studentName").value.trim();
   if(!c || !n || !nm){
     alert("請填完整學生資料");
     return;
@@ -127,7 +136,7 @@ function submitQuiz(){
     if(s && +s.value === q.a) score++;
   });
 
-  result.innerText = `你的成績：${score} / 20`;
+  document.getElementById("result").innerText = `你的成績：${score} / 20`;
 
   const data = JSON.parse(localStorage.getItem("records") || "[]");
   data.push({class:c,no:n,name:nm,score,time:new Date().toLocaleString()});
@@ -137,21 +146,23 @@ function submitQuiz(){
 
 /* ===== 教師登入 ===== */
 function teacherLogin(){
-  if(teacherPwd.value === TEACHER_PASSWORD){
-    teacherLoginDiv.style.display="none";
-    teacherArea.style.display="block";
+  const pwd = document.getElementById("teacherPwd").value;
+  if(pwd === TEACHER_PASSWORD){
+    document.getElementById("teacherLoginDiv").style.display="none";
+    document.getElementById("teacherArea").style.display="block";
     loadRecords();
   }else{
-    loginMsg.innerText="❌ 密碼錯誤";
+    document.getElementById("loginMsg").innerText="❌ 密碼錯誤";
   }
 }
 
 /* ===== 顯示成績 ===== */
 function loadRecords(){
-  records.innerHTML = "";
+  const recordsTable = document.getElementById("records");
+  recordsTable.innerHTML = "";
   const data = JSON.parse(localStorage.getItem("records") || "[]");
   data.forEach(r=>{
-    records.innerHTML += `<tr>
+    recordsTable.innerHTML += `<tr>
       <td>${r.class}</td>
       <td>${r.no}</td>
       <td>${r.name}</td>
@@ -172,7 +183,8 @@ function clearRecords(){
 
 /* ===== 公佈答案 ===== */
 function showAnswers(){
-  answerDiv.style.display="block";
+  document.getElementById("answerDiv").style.display="block";
+  const answerKey = document.getElementById("answerKey");
   answerKey.innerHTML="";
   questions.forEach(q=>{
     answerKey.innerHTML += `<tr>
