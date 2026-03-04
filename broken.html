@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<title>儲存裝置破壞測驗</title>
+<title>資通安全基本概念測驗</title>
 <style>
 body{font-family:"Microsoft JhengHei",sans-serif;background:#0f172a;color:#e5e7eb;padding:20px;}
 h1,h2,h3{color:#38bdf8;}
@@ -25,7 +25,7 @@ th{background:#1e293b;}
   <h2>👨‍🎓 學生資料</h2>
   班級：<input id="className">
   座號：<input id="no">
-  姓名：<input id="studentName">
+  姓名：<input id="name">
 </div>
 
 <div class="section" id="quiz"></div>
@@ -70,7 +70,7 @@ th{background:#1e293b;}
 <script>
 const TEACHER_PASSWORD = "teacher123";
 
-/* ===== 題庫：儲存裝置破壞（20 題）===== */
+/* ===== 題庫 ===== */
 const questions = [
  {id:1,q:"硬碟破壞的常見方法？",o:["格式化","加密","備份","重啟"],a:0},
  {id:2,q:"SSD 完全刪除資料需？",o:["使用安全擦除工具","關機","備份","加密"],a:0},
@@ -96,35 +96,25 @@ const questions = [
 
 let currentQuestions = [];
 
-/* ===== 題目隨機排列 ===== */
-function shuffle(array){
-  for(let i=array.length-1;i>0;i--){
-    const j = Math.floor(Math.random()*(i+1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
-}
-
 /* ===== 載入題目 ===== */
-window.onload = function(){
-  currentQuestions = shuffle([...questions]);
-  const quiz = document.getElementById("quiz");
+window.onload = () => {
+  currentQuestions = [...questions].sort(()=>Math.random()-0.5);
   quiz.innerHTML = "";
   currentQuestions.forEach((q,i)=>{
-    let html = `<div class="question"><b>${i+1}. ${q.q}</b><br>`;
+    let h = `<div class="question"><b>${i+1}. ${q.q}</b><br>`;
     q.o.forEach((o,j)=>{
-      html += `<label><input type="radio" name="q${i}" value="${j}"> ${o}</label><br>`;
+      h += `<label><input type="radio" name="q${i}" value="${j}"> ${o}</label><br>`;
     });
-    html += "</div>";
-    quiz.innerHTML += html;
+    quiz.innerHTML += h + "</div>";
   });
-}
+};
 
-/* ===== 學生提交 ===== */
+/* ===== 學生提交（✅ 已修正）===== */
 function submitQuiz(){
-  const c = document.getElementById("className").value.trim();
-  const n = document.getElementById("no").value.trim();
-  const nm = document.getElementById("studentName").value.trim();
+  const c  = className.value.replace(/\s/g,'');
+  const n  = no.value.replace(/\s/g,'');
+  const nm = name.value.replace(/\s/g,'');
+
   if(!c || !n || !nm){
     alert("請填完整學生資料");
     return;
@@ -136,7 +126,7 @@ function submitQuiz(){
     if(s && +s.value === q.a) score++;
   });
 
-  document.getElementById("result").innerText = `你的成績：${score} / 20`;
+  result.innerText = `你的成績：${score} / 20`;
 
   const data = JSON.parse(localStorage.getItem("records") || "[]");
   data.push({class:c,no:n,name:nm,score,time:new Date().toLocaleString()});
@@ -144,76 +134,47 @@ function submitQuiz(){
   loadRecords();
 }
 
-/* ===== 教師登入 ===== */
+/* ===== 教師功能 ===== */
 function teacherLogin(){
-  const pwd = document.getElementById("teacherPwd").value;
-  if(pwd === TEACHER_PASSWORD){
-    document.getElementById("teacherLoginDiv").style.display="none";
-    document.getElementById("teacherArea").style.display="block";
+  if(teacherPwd.value === TEACHER_PASSWORD){
+    teacherLoginDiv.style.display="none";
+    teacherArea.style.display="block";
     loadRecords();
-  }else{
-    document.getElementById("loginMsg").innerText="❌ 密碼錯誤";
-  }
+  }else loginMsg.innerText="❌ 密碼錯誤";
 }
 
-/* ===== 顯示成績 ===== */
 function loadRecords(){
-  const recordsTable = document.getElementById("records");
-  recordsTable.innerHTML = "";
-  const data = JSON.parse(localStorage.getItem("records") || "[]");
-  data.forEach(r=>{
-    recordsTable.innerHTML += `<tr>
-      <td>${r.class}</td>
-      <td>${r.no}</td>
-      <td>${r.name}</td>
-      <td>${r.score}</td>
-      <td>${r.time}</td>
-    </tr>`;
-  });
+  records.innerHTML="";
+  JSON.parse(localStorage.getItem("records")||"[]")
+    .forEach(r=>{
+      records.innerHTML+=`<tr><td>${r.class}</td><td>${r.no}</td><td>${r.name}</td><td>${r.score}</td><td>${r.time}</td></tr>`;
+    });
 }
 
-/* ===== 清空成績 ===== */
 function clearRecords(){
   if(confirm("確定清空所有學生成績？")){
     localStorage.removeItem("records");
     loadRecords();
-    alert("✅ 成績已清空");
   }
 }
 
-/* ===== 公佈答案 ===== */
 function showAnswers(){
-  document.getElementById("answerDiv").style.display="block";
-  const answerKey = document.getElementById("answerKey");
+  answerDiv.style.display="block";
   answerKey.innerHTML="";
   questions.forEach(q=>{
-    answerKey.innerHTML += `<tr>
-      <td>${q.id}</td>
-      <td>${q.q}</td>
-      <td>${q.o[q.a]}</td>
-    </tr>`;
+    answerKey.innerHTML+=`<tr><td>${q.id}</td><td>${q.q}</td><td>${q.o[q.a]}</td></tr>`;
   });
 }
 
-/* ===== CSV 匯出（UTF-8 + BOM，Excel 不亂碼）===== */
 function exportCSV(){
-  const data = JSON.parse(localStorage.getItem("records") || "[]");
-  if(!data.length){
-    alert("目前沒有成績可匯出");
-    return;
-  }
-
-  let csv = "班級,座號,姓名,分數,時間\n";
-  data.forEach(r=>{
-    csv += `"${r.class}","${r.no}","${r.name}","${r.score}","${r.time}"\n`;
-  });
-
-  const BOM = "\uFEFF";
-  const blob = new Blob([BOM + csv], { type: "text/csv;charset=utf-8;" });
-
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "儲存裝置破壞測驗成績.csv";
+  const data = JSON.parse(localStorage.getItem("records")||"[]");
+  if(!data.length) return alert("目前沒有成績");
+  let csv="班級,座號,姓名,分數,時間\n";
+  data.forEach(r=>csv+=`"${r.class}","${r.no}","${r.name}","${r.score}","${r.time}"\n`);
+  const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="儲存裝置破壞測驗成績.csv";
   a.click();
 }
 </script>
