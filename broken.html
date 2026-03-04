@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<title>資通安全基本概念測驗</title>
+<title>儲存裝置破壞測驗</title>
 <style>
 body{font-family:"Microsoft JhengHei",sans-serif;background:#0f172a;color:#e5e7eb;padding:20px;}
 h1,h2,h3{color:#38bdf8;}
@@ -23,9 +23,9 @@ th{background:#1e293b;}
 
 <div class="section">
   <h2>👨‍🎓 學生資料</h2>
-  班級：<input id="className">
-  座號：<input id="no">
-  姓名：<input id="name">
+  班級：<input type="text" id="className">
+  座號：<input type="text" id="no">
+  姓名：<input type="text" id="studentName">
 </div>
 
 <div class="section" id="quiz"></div>
@@ -74,46 +74,48 @@ const TEACHER_PASSWORD = "teacher123";
 const questions = [
  {id:1,q:"硬碟破壞的常見方法？",o:["格式化","加密","備份","重啟"],a:0},
  {id:2,q:"SSD 完全刪除資料需？",o:["使用安全擦除工具","關機","備份","加密"],a:0},
- {id:3,q:"USB 隨身碟破壞可能造成？",o:["資料無法讀取","加速系統","提升效能","SEO 優化"],a:0},
- {id:4,q:"磁碟碎片破壞資料效果？",o:["減少可恢復性","加速系統","增加效能","備份資料"],a:0},
- {id:5,q:"使用強力磁鐵破壞硬碟原理？",o:["破壞磁性資訊","加密資料","備份資料","提升速度"],a:0},
- {id:6,q:"刪除檔案但未覆寫？",o:["資料可恢復","加速網頁","增加效能","備份資料"],a:0},
- {id:7,q:"破壞光碟的安全方式？",o:["刻痕或碎片化","加密資料","備份資料","SEO 優化"],a:0},
- {id:8,q:"固態硬碟安全刪除工具？",o:["ATA Secure Erase","Excel","Word","Photoshop"],a:0},
- {id:9,q:"資料破壞前應先？",o:["備份重要資料","加速網頁","增加流量","SEO 優化"],a:0},
- {id:10,q:"刪除磁碟分區會？",o:["資料消失但可能被恢復","提升效能","加速網站","SEO 優化"],a:0},
- {id:11,q:"資料粉碎軟體作用？",o:["覆寫資料增加不可恢復性","加密資料","備份資料","提升速度"],a:0},
- {id:12,q:"硬碟物理破壞目的？",o:["防止資料被讀取","加速網頁","增加流量","SEO 優化"],a:0},
- {id:13,q:"RAID 系統破壞影響？",o:["可能整個陣列資料丟失","加密資料","備份資料","SEO 優化"],a:0},
- {id:14,q:"磁帶存儲破壞方法？",o:["剪斷或粉碎","加密資料","備份資料","提升速度"],a:0},
- {id:15,q:"刪除雲端檔案注意？",o:["確認同步到所有裝置","加密資料","備份資料","提升速度"],a:0},
- {id:16,q:"破壞存儲裝置需注意？",o:["合法授權與安全","加速網站","增加流量","SEO 優化"],a:0},
- {id:17,q:"磁碟擦除標準？",o:["DoD 5220.22-M","加密工具","備份工具","提升速度"],a:0},
- {id:18,q:"破壞 SD 卡工具？",o:["格式化與粉碎工具","加速網站","增加流量","SEO 優化"],a:0},
- {id:19,q:"資料不可恢復方法？",o:["覆寫多次","加密資料","備份資料","SEO 優化"],a:0},
- {id:20,q:"硬碟安全處理原則？",o:["防止敏感資料外洩","加速網站","增加流量","SEO 優化"],a:0}
+ {id:3,q:"USB 隨身碟破壞可能造成？",o:["資料無法讀取","加速系統","提升效能","SEO"],a:0},
+ {id:4,q:"磁碟碎片破壞資料效果？",o:["減少可恢復性","加速系統","效能","備份"],a:0},
+ {id:5,q:"強力磁鐵破壞硬碟原理？",o:["破壞磁性資訊","加密","備份","提升"],a:0},
+ {id:6,q:"刪除但未覆寫？",o:["資料可恢復","加速","效能","備份"],a:0},
+ {id:7,q:"破壞光碟方式？",o:["刻痕或碎片化","加密","備份","SEO"],a:0},
+ {id:8,q:"SSD 安全刪除工具？",o:["ATA Secure Erase","Excel","Word","PS"],a:0},
+ {id:9,q:"破壞前應先？",o:["備份","加速","流量","SEO"],a:0},
+ {id:10,q:"刪除分區會？",o:["可能被恢復","效能","網站","SEO"],a:0},
+ {id:11,q:"資料粉碎軟體？",o:["覆寫資料","加密","備份","提升"],a:0},
+ {id:12,q:"硬碟物理破壞？",o:["防止資料被讀取","加速","流量","SEO"],a:0},
+ {id:13,q:"RAID 破壞影響？",o:["整個陣列資料遺失","加密","備份","SEO"],a:0},
+ {id:14,q:"磁帶破壞？",o:["剪斷或粉碎","加密","備份","提升"],a:0},
+ {id:15,q:"雲端刪除注意？",o:["同步裝置","加密","備份","提升"],a:0},
+ {id:16,q:"破壞裝置需注意？",o:["合法與安全","加速","流量","SEO"],a:0},
+ {id:17,q:"磁碟擦除標準？",o:["DoD 5220.22-M","加密","備份","提升"],a:0},
+ {id:18,q:"SD 卡破壞？",o:["格式化與粉碎","加速","流量","SEO"],a:0},
+ {id:19,q:"不可恢復方法？",o:["多次覆寫","加密","備份","SEO"],a:0},
+ {id:20,q:"安全處理原則？",o:["防止資料外洩","加速","流量","SEO"],a:0}
 ];
 
 let currentQuestions = [];
 
 /* ===== 載入題目 ===== */
-window.onload = () => {
+window.onload = function(){
   currentQuestions = [...questions].sort(()=>Math.random()-0.5);
+  const quiz = document.getElementById("quiz");
   quiz.innerHTML = "";
   currentQuestions.forEach((q,i)=>{
-    let h = `<div class="question"><b>${i+1}. ${q.q}</b><br>`;
+    let html = `<div class="question"><b>${i+1}. ${q.q}</b><br>`;
     q.o.forEach((o,j)=>{
-      h += `<label><input type="radio" name="q${i}" value="${j}"> ${o}</label><br>`;
+      html += `<label><input type="radio" name="q${i}" value="${j}"> ${o}</label><br>`;
     });
-    quiz.innerHTML += h + "</div>";
+    html += "</div>";
+    quiz.innerHTML += html;
   });
-};
+}
 
-/* ===== 學生提交（✅ 已修正）===== */
+/* ===== 學生提交（✔ 最終正確版）===== */
 function submitQuiz(){
-  const c  = className.value.replace(/\s/g,'');
-  const n  = no.value.replace(/\s/g,'');
-  const nm = name.value.replace(/\s/g,'');
+  const c  = document.getElementById("className").value.replace(/\s/g,'');
+  const n  = document.getElementById("no").value.replace(/\s/g,'');
+  const nm = document.getElementById("studentName").value.replace(/\s/g,'');
 
   if(!c || !n || !nm){
     alert("請填完整學生資料");
@@ -126,7 +128,7 @@ function submitQuiz(){
     if(s && +s.value === q.a) score++;
   });
 
-  result.innerText = `你的成績：${score} / 20`;
+  document.getElementById("result").innerText = `你的成績：${score} / 20`;
 
   const data = JSON.parse(localStorage.getItem("records") || "[]");
   data.push({class:c,no:n,name:nm,score,time:new Date().toLocaleString()});
@@ -134,23 +136,34 @@ function submitQuiz(){
   loadRecords();
 }
 
-/* ===== 教師功能 ===== */
+/* ===== 教師登入 ===== */
 function teacherLogin(){
-  if(teacherPwd.value === TEACHER_PASSWORD){
-    teacherLoginDiv.style.display="none";
-    teacherArea.style.display="block";
+  if(document.getElementById("teacherPwd").value === TEACHER_PASSWORD){
+    document.getElementById("teacherLoginDiv").style.display="none";
+    document.getElementById("teacherArea").style.display="block";
     loadRecords();
-  }else loginMsg.innerText="❌ 密碼錯誤";
+  }else{
+    document.getElementById("loginMsg").innerText="❌ 密碼錯誤";
+  }
 }
 
+/* ===== 成績 ===== */
 function loadRecords(){
-  records.innerHTML="";
-  JSON.parse(localStorage.getItem("records")||"[]")
-    .forEach(r=>{
-      records.innerHTML+=`<tr><td>${r.class}</td><td>${r.no}</td><td>${r.name}</td><td>${r.score}</td><td>${r.time}</td></tr>`;
-    });
+  const records = document.getElementById("records");
+  records.innerHTML = "";
+  const data = JSON.parse(localStorage.getItem("records") || "[]");
+  data.forEach(r=>{
+    records.innerHTML += `<tr>
+      <td>${r.class}</td>
+      <td>${r.no}</td>
+      <td>${r.name}</td>
+      <td>${r.score}</td>
+      <td>${r.time}</td>
+    </tr>`;
+  });
 }
 
+/* ===== 其餘功能 ===== */
 function clearRecords(){
   if(confirm("確定清空所有學生成績？")){
     localStorage.removeItem("records");
@@ -159,22 +172,23 @@ function clearRecords(){
 }
 
 function showAnswers(){
-  answerDiv.style.display="block";
-  answerKey.innerHTML="";
+  document.getElementById("answerDiv").style.display="block";
+  const ak = document.getElementById("answerKey");
+  ak.innerHTML="";
   questions.forEach(q=>{
-    answerKey.innerHTML+=`<tr><td>${q.id}</td><td>${q.q}</td><td>${q.o[q.a]}</td></tr>`;
+    ak.innerHTML += `<tr><td>${q.id}</td><td>${q.q}</td><td>${q.o[q.a]}</td></tr>`;
   });
 }
 
 function exportCSV(){
-  const data = JSON.parse(localStorage.getItem("records")||"[]");
-  if(!data.length) return alert("目前沒有成績");
-  let csv="班級,座號,姓名,分數,時間\n";
+  const data = JSON.parse(localStorage.getItem("records") || "[]");
+  if(!data.length){ alert("目前沒有成績"); return; }
+  let csv = "班級,座號,姓名,分數,時間\n";
   data.forEach(r=>csv+=`"${r.class}","${r.no}","${r.name}","${r.score}","${r.time}"\n`);
-  const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download="儲存裝置破壞測驗成績.csv";
+  const blob = new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "儲存裝置破壞測驗成績.csv";
   a.click();
 }
 </script>
