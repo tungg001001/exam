@@ -23,9 +23,9 @@ th{background:#1e293b;}
 
 <div class="section">
   <h2>👨‍🎓 學生資料</h2>
-  班級：<input id="className">
-  座號：<input id="no">
-  姓名：<input id="name">
+  班級：<input id="classInput">
+  座號：<input id="noInput">
+  姓名：<input id="nameInput">
 </div>
 
 <div class="section" id="quiz"></div>
@@ -113,9 +113,10 @@ window.onload = function(){
 
 /* ===== 學生提交 ===== */
 function submitQuiz(){
-  const c = className.value;
-  const n = no.value;
-  const nm = name.value;
+  const c = document.getElementById("classInput").value.trim();
+  const n = document.getElementById("noInput").value.trim();
+  const nm = document.getElementById("nameInput").value.trim();
+
   if(!c || !n || !nm){
     alert("請填完整學生資料");
     return;
@@ -127,7 +128,7 @@ function submitQuiz(){
     if(s && +s.value === q.a) score++;
   });
 
-  result.innerText = `你的成績：${score} / 20`;
+  document.getElementById("result").innerText = `你的成績：${score} / 20`;
 
   const data = JSON.parse(localStorage.getItem("records") || "[]");
   data.push({class:c,no:n,name:nm,score,time:new Date().toLocaleString()});
@@ -137,17 +138,23 @@ function submitQuiz(){
 
 /* ===== 教師登入 ===== */
 function teacherLogin(){
-  if(teacherPwd.value === TEACHER_PASSWORD){
+  const teacherPwdInput = document.getElementById("teacherPwd");
+  const teacherLoginDiv = document.getElementById("teacherLoginDiv");
+  const teacherArea = document.getElementById("teacherArea");
+  const loginMsg = document.getElementById("loginMsg");
+
+  if(teacherPwdInput.value === TEACHER_PASSWORD){
     teacherLoginDiv.style.display="none";
     teacherArea.style.display="block";
     loadRecords();
-  }else{
+  } else {
     loginMsg.innerText="❌ 密碼錯誤";
   }
 }
 
 /* ===== 顯示成績 ===== */
 function loadRecords(){
+  const records = document.getElementById("records");
   records.innerHTML = "";
   const data = JSON.parse(localStorage.getItem("records") || "[]");
   data.forEach(r=>{
@@ -172,6 +179,8 @@ function clearRecords(){
 
 /* ===== 公佈答案 ===== */
 function showAnswers(){
+  const answerDiv = document.getElementById("answerDiv");
+  const answerKey = document.getElementById("answerKey");
   answerDiv.style.display="block";
   answerKey.innerHTML="";
   questions.forEach(q=>{
@@ -200,9 +209,12 @@ function exportCSV(){
   const blob = new Blob([BOM + csv], { type: "text/csv;charset=utf-8;" });
 
   const a = document.createElement("a");
+  a.style.display = "none";
   a.href = URL.createObjectURL(blob);
   a.download = "加密與資料保護測驗成績.csv";
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
 }
 </script>
 
