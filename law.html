@@ -23,13 +23,13 @@ th{background:#1e293b;}
 
 <div class="section">
   <h2>👨‍🎓 學生資料</h2>
-  班級：<input id="className">
-  座號：<input id="no">
-  姓名：<input id="name">
+  班級：<input id="classInput">
+  座號：<input id="noInput">
+  姓名：<input id="nameInput">
 </div>
 
 <div class="section" id="quiz"></div>
-<button onclick="submitQuiz()">提交測驗</button>
+<button type="button" onclick="submitQuiz()">提交測驗</button>
 <h2 id="result"></h2>
 
 <hr>
@@ -37,14 +37,14 @@ th{background:#1e293b;}
 <div class="section" id="teacherLoginDiv">
   <h2>🔐 教師登入</h2>
   教師密碼：<input type="password" id="teacherPwd">
-  <button onclick="teacherLogin()">登入</button>
+  <button type="button" onclick="teacherLogin()">登入</button>
   <p id="loginMsg" style="color:#f87171"></p>
 </div>
 
 <div class="section" id="teacherArea" style="display:none">
   <h2>👨‍🏫 教師成績總覽</h2>
-  <button onclick="exportCSV()">📤 匯出 CSV</button>
-  <button class="danger" onclick="clearRecords()">🗑 清空所有成績</button>
+  <button type="button" onclick="exportCSV()">📤 匯出 CSV</button>
+  <button class="danger" type="button" onclick="clearRecords()">🗑 清空所有成績</button>
 
   <table>
     <thead>
@@ -55,7 +55,7 @@ th{background:#1e293b;}
     <tbody id="records"></tbody>
   </table>
 
-  <button onclick="showAnswers()">📢 公佈正確答案</button>
+  <button type="button" onclick="showAnswers()">📢 公佈正確答案</button>
   <div id="answerDiv" style="display:none">
     <h3>📌 正確答案表</h3>
     <table>
@@ -113,8 +113,10 @@ window.onload = function(){
 
 /* ===== 學生提交 ===== */
 function submitQuiz(){
-  const c=className.value,n=no.value,nm=name.value;
-  if(!c||!n||!nm){alert("請填完整學生資料");return;}
+  const c=document.getElementById("classInput").value.trim();
+  const n=document.getElementById("noInput").value.trim();
+  const nm=document.getElementById("nameInput").value.trim();
+  if(!c||!n||!nm){alert("請填完整學生資料"); return;}
 
   let score=0;
   currentQuestions.forEach((q,i)=>{
@@ -122,7 +124,7 @@ function submitQuiz(){
     if(s && +s.value===q.a) score++;
   });
 
-  result.innerText=`你的成績：${score} / 20`;
+  document.getElementById("result").innerText=`你的成績：${score} / 20`;
 
   const data=JSON.parse(localStorage.getItem("records")||"[]");
   data.push({class:c,no:n,name:nm,score,time:new Date().toLocaleString()});
@@ -132,15 +134,17 @@ function submitQuiz(){
 
 /* ===== 教師登入 ===== */
 function teacherLogin(){
-  if(teacherPwd.value===TEACHER_PASSWORD){
-    teacherLoginDiv.style.display="none";
-    teacherArea.style.display="block";
+  const pwd=document.getElementById("teacherPwd").value;
+  if(pwd===TEACHER_PASSWORD){
+    document.getElementById("teacherLoginDiv").style.display="none";
+    document.getElementById("teacherArea").style.display="block";
     loadRecords();
-  }else loginMsg.innerText="❌ 密碼錯誤";
+  }else document.getElementById("loginMsg").innerText="❌ 密碼錯誤";
 }
 
 /* ===== 顯示成績 ===== */
 function loadRecords(){
+  const records=document.getElementById("records");
   records.innerHTML="";
   const data=JSON.parse(localStorage.getItem("records")||"[]");
   data.forEach(r=>{
@@ -161,6 +165,8 @@ function clearRecords(){
 
 /* ===== 公佈答案 ===== */
 function showAnswers(){
+  const answerDiv=document.getElementById("answerDiv");
+  const answerKey=document.getElementById("answerKey");
   answerDiv.style.display="block";
   answerKey.innerHTML="";
   questions.forEach(q=>{
@@ -172,7 +178,7 @@ function showAnswers(){
 /* ===== CSV 匯出（UTF-8 + BOM）===== */
 function exportCSV(){
   const data=JSON.parse(localStorage.getItem("records")||"[]");
-  if(!data.length){alert("沒有成績");return;}
+  if(!data.length){alert("目前沒有成績可匯出"); return;}
 
   let csv="班級,座號,姓名,分數,時間\n";
   data.forEach(r=>{
