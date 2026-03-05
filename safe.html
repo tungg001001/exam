@@ -23,9 +23,9 @@ th{background:#1e293b;}
 
 <div class="section">
   <h2>👨‍🎓 學生資料</h2>
-  班級：<input id="className">
-  座號：<input id="no">
-  姓名：<input id="name">
+  班級：<input id="inputClass">
+  座號：<input id="inputNo">
+  姓名：<input id="inputName">
 </div>
 
 <div class="section" id="quiz"></div>
@@ -70,7 +70,6 @@ th{background:#1e293b;}
 <script>
 const TEACHER_PASSWORD = "teacher123";
 
-/* ===== 題庫：網路安全（20 題）===== */
 const questions = [
  {id:1,q:"DDoS 攻擊主要目的是？",o:["竊取資料","癱瘓服務","加速網路","加密資料"],a:1},
  {id:2,q:"防火牆主要功能為何？",o:["阻擋未授權連線","加速網路","加密資料","管理帳號"],a:0},
@@ -96,7 +95,6 @@ const questions = [
 
 let currentQuestions = [];
 
-/* ===== 載入題目（隨機）===== */
 window.onload = function(){
   currentQuestions = [...questions].sort(()=>Math.random()-0.5);
   const quiz = document.getElementById("quiz");
@@ -111,11 +109,10 @@ window.onload = function(){
   });
 }
 
-/* ===== 學生提交 ===== */
 function submitQuiz(){
-  const c = className.value;
-  const n = no.value;
-  const nm = name.value;
+  const c = document.getElementById("inputClass").value;
+  const n = document.getElementById("inputNo").value;
+  const nm = document.getElementById("inputName").value;
   if(!c || !n || !nm){
     alert("請填完整學生資料");
     return;
@@ -127,7 +124,7 @@ function submitQuiz(){
     if(s && +s.value === q.a) score++;
   });
 
-  result.innerText = `你的成績：${score} / 20`;
+  document.getElementById("result").innerText = `你的成績：${score} / 20`;
 
   const data = JSON.parse(localStorage.getItem("records") || "[]");
   data.push({class:c,no:n,name:nm,score,time:new Date().toLocaleString()});
@@ -135,23 +132,23 @@ function submitQuiz(){
   loadRecords();
 }
 
-/* ===== 教師登入 ===== */
 function teacherLogin(){
-  if(teacherPwd.value === TEACHER_PASSWORD){
-    teacherLoginDiv.style.display="none";
-    teacherArea.style.display="block";
+  const pwd = document.getElementById("teacherPwd").value;
+  if(pwd === TEACHER_PASSWORD){
+    document.getElementById("teacherLoginDiv").style.display="none";
+    document.getElementById("teacherArea").style.display="block";
     loadRecords();
   }else{
-    loginMsg.innerText="❌ 密碼錯誤";
+    document.getElementById("loginMsg").innerText="❌ 密碼錯誤";
   }
 }
 
-/* ===== 顯示成績 ===== */
 function loadRecords(){
-  records.innerHTML = "";
+  const recordsTbody = document.getElementById("records");
+  recordsTbody.innerHTML = "";
   const data = JSON.parse(localStorage.getItem("records") || "[]");
   data.forEach(r=>{
-    records.innerHTML += `<tr>
+    recordsTbody.innerHTML += `<tr>
       <td>${r.class}</td>
       <td>${r.no}</td>
       <td>${r.name}</td>
@@ -161,7 +158,6 @@ function loadRecords(){
   });
 }
 
-/* ===== 清空成績 ===== */
 function clearRecords(){
   if(confirm("確定清空所有學生成績？")){
     localStorage.removeItem("records");
@@ -170,12 +166,12 @@ function clearRecords(){
   }
 }
 
-/* ===== 公佈答案 ===== */
 function showAnswers(){
-  answerDiv.style.display="block";
-  answerKey.innerHTML="";
+  document.getElementById("answerDiv").style.display="block";
+  const answerTbody = document.getElementById("answerKey");
+  answerTbody.innerHTML="";
   questions.forEach(q=>{
-    answerKey.innerHTML += `<tr>
+    answerTbody.innerHTML += `<tr>
       <td>${q.id}</td>
       <td>${q.q}</td>
       <td>${q.o[q.a]}</td>
@@ -183,7 +179,6 @@ function showAnswers(){
   });
 }
 
-/* ===== CSV 匯出（UTF-8 + BOM，Excel 不亂碼）===== */
 function exportCSV(){
   const data = JSON.parse(localStorage.getItem("records") || "[]");
   if(!data.length){
@@ -198,7 +193,6 @@ function exportCSV(){
 
   const BOM = "\uFEFF";
   const blob = new Blob([BOM + csv], { type: "text/csv;charset=utf-8;" });
-
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = "網路安全測驗成績.csv";
