@@ -4,30 +4,17 @@
 <meta charset="UTF-8">
 <title>資安管理與法規測驗</title>
 <style>
-body{
-  font-family:"Microsoft JhengHei",sans-serif;
-  background:#0f172a;
-  color:#e5e7eb;
-  padding:20px;
-}
-h1,h2{color:#38bdf8;}
-.section{
-  background:#020617;
-  padding:15px;
-  border-radius:8px;
-  margin-bottom:20px;
-}
+body{font-family:"Microsoft JhengHei",sans-serif;background:#0f172a;color:#e5e7eb;padding:20px;}
+h1,h2,h3{color:#38bdf8;}
+.section{background:#020617;padding:15px;border-radius:8px;margin-bottom:20px;}
 .question{margin-bottom:15px;}
 input{padding:6px;margin:5px;}
-button{
-  background:#38bdf8;
-  border:none;
-  padding:10px 20px;
-  font-size:16px;
-  border-radius:6px;
-  cursor:pointer;
-}
-button:disabled{background:#64748b;}
+button{background:#38bdf8;border:none;padding:10px 20px;font-size:16px;border-radius:6px;cursor:pointer;margin:5px;}
+button:hover{background:#0ea5e9;}
+button.danger{background:#ef4444;}
+table{width:100%;border-collapse:collapse;margin-top:10px;}
+th,td{border:1px solid #334155;padding:8px;text-align:center;}
+th{background:#1e293b;}
 </style>
 </head>
 <body>
@@ -36,17 +23,53 @@ button:disabled{background:#64748b;}
 
 <div class="section">
   <h2>👨‍🎓 學生資料</h2>
-  班級：<input id="stuClass"><br>
-  座號：<input id="stuSeat"><br>
+  班級：<input id="stuClass">
+  座號：<input id="stuSeat">
   姓名：<input id="stuName">
 </div>
 
 <div class="section" id="quiz"></div>
-
-<button id="submitBtn" onclick="submitQuiz()">提交測驗</button>
+<button onclick="submitQuiz()">提交測驗</button>
 <h2 id="result"></h2>
 
+<hr>
+
+<div class="section" id="teacherLoginDiv">
+  <h2>🔐 教師登入</h2>
+  教師密碼：<input type="password" id="teacherPwd">
+  <button onclick="teacherLogin()">登入</button>
+  <p id="loginMsg" style="color:#f87171"></p>
+</div>
+
+<div class="section" id="teacherArea" style="display:none">
+  <h2>👨‍🏫 教師成績總覽</h2>
+  <button onclick="exportCSV()">📤 匯出 CSV</button>
+  <button class="danger" onclick="clearRecords()">🗑 清空所有成績</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>班級</th><th>座號</th><th>姓名</th><th>分數</th><th>時間</th>
+      </tr>
+    </thead>
+    <tbody id="records"></tbody>
+  </table>
+
+  <button onclick="showAnswers()">📢 公佈正確答案</button>
+  <div id="answerDiv" style="display:none">
+    <h3>📌 正確答案表</h3>
+    <table>
+      <thead>
+        <tr><th>題號</th><th>題目</th><th>正確答案</th></tr>
+      </thead>
+      <tbody id="answerKey"></tbody>
+    </table>
+  </div>
+</div>
+
 <script>
+const TEACHER_PASSWORD = "teacher123";
+
 /* ===== 題庫（20 題）===== */
 const questions = [
  {q:"資安管理三大目標 CIA 中的 I 代表？",o:["完整性","機密性","可用性","便利性"],a:0},
@@ -73,8 +96,8 @@ const questions = [
 
 let currentQuestions = [];
 
-/* ===== 載入題目 ===== */
-window.onload = () => {
+/* ===== 載入題目（隨機排序）===== */
+window.onload = function(){
   currentQuestions = [...questions].sort(()=>Math.random()-0.5);
   const quiz = document.getElementById("quiz");
   quiz.innerHTML = "";
@@ -86,15 +109,15 @@ window.onload = () => {
     html += "</div>";
     quiz.innerHTML += html;
   });
-};
+}
 
-/* ===== 提交測驗（最終穩定版）===== */
+/* ===== 學生提交 ===== */
 function submitQuiz(){
   const c = document.getElementById("stuClass").value.trim();
   const s = document.getElementById("stuSeat").value.trim();
   const n = document.getElementById("stuName").value.trim();
 
-  if(c === "" || s === "" || n === ""){
+  if(!c || !s || !n){
     alert("請填完整學生資料");
     return;
   }
@@ -108,8 +131,87 @@ function submitQuiz(){
   document.getElementById("result").innerText =
     `你的成績：${score} / ${currentQuestions.length}`;
 
-  document.getElementById("submitBtn").disabled = true;
-  document.getElementById("submitBtn").innerText = "已提交";
+  // 儲存成績
+  const data = JSON.parse(localStorage.getItem("records") || "[]");
+  data.push({class:c,no:s,name:n,score, time:new Date().toLocaleString()});
+  localStorage.setItem("records", JSON.stringify(data));
+
+  // 禁用按鈕避免重複提交
+  const btn = document.querySelector("button[onclick='submitQuiz()']");
+  btn.disabled = true;
+  btn.innerText = "已提交";
+}
+
+/* ===== 教師登入 ===== */
+function teacherLogin(){
+  const pwd = document.getElementById("teacherPwd").value;
+  if(pwd === TEACHER_PASSWORD){
+    document.getElementById("teacherLoginDiv").style.display = "none";
+    document.getElementById("teacherArea").style.display = "block";
+    loadRecords();
+  } else {
+    document.getElementById("loginMsg").innerText = "❌ 密碼錯誤";
+  }
+}
+
+/* ===== 顯示成績 ===== */
+function loadRecords(){
+  const tbody = document.getElementById("records");
+  tbody.innerHTML = "";
+  const data = JSON.parse(localStorage.getItem("records") || "[]");
+  data.forEach(r=>{
+    tbody.innerHTML += `<tr>
+      <td>${r.class}</td>
+      <td>${r.no}</td>
+      <td>${r.name}</td>
+      <td>${r.score}</td>
+      <td>${r.time}</td>
+    </tr>`;
+  });
+}
+
+/* ===== 清空成績 ===== */
+function clearRecords(){
+  if(confirm("確定清空所有學生成績？")){
+    localStorage.removeItem("records");
+    loadRecords();
+    alert("✅ 成績已清空");
+  }
+}
+
+/* ===== 公佈答案 ===== */
+function showAnswers(){
+  document.getElementById("answerDiv").style.display = "block";
+  const tbody = document.getElementById("answerKey");
+  tbody.innerHTML = "";
+  questions.forEach((q,i)=>{
+    tbody.innerHTML += `<tr>
+      <td>${i+1}</td>
+      <td>${q.q}</td>
+      <td>${q.o[q.a]}</td>
+    </tr>`;
+  });
+}
+
+/* ===== 匯出 CSV（UTF-8 + BOM）===== */
+function exportCSV(){
+  const data = JSON.parse(localStorage.getItem("records") || "[]");
+  if(!data.length){
+    alert("目前沒有成績可匯出");
+    return;
+  }
+
+  let csv = "班級,座號,姓名,分數,時間\n";
+  data.forEach(r=>{
+    csv += `"${r.class}","${r.no}","${r.name}","${r.score}","${r.time}"\n`;
+  });
+
+  const BOM = "\uFEFF";
+  const blob = new Blob([BOM + csv], { type:"text/csv;charset=utf-8;" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "資安管理測驗成績.csv";
+  a.click();
 }
 </script>
 
