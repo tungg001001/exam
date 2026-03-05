@@ -2,208 +2,425 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<title>資通安全基本概念測驗</title>
+<title>Nmap 網站探詢測驗</title>
+
 <style>
-body{font-family:"Microsoft JhengHei",sans-serif;background:#0f172a;color:#e5e7eb;padding:20px;}
+body{
+font-family:"Microsoft JhengHei",sans-serif;
+background:#0f172a;
+color:#e5e7eb;
+padding:20px;
+}
+
 h1,h2,h3{color:#38bdf8;}
-.section{background:#020617;padding:15px;border-radius:8px;margin-bottom:20px;}
+
+.section{
+background:#020617;
+padding:15px;
+border-radius:8px;
+margin-bottom:20px;
+}
+
 .question{margin-bottom:15px;}
+
 input{padding:5px;margin:5px;}
-button{background:#38bdf8;border:none;padding:10px 20px;font-size:16px;border-radius:6px;cursor:pointer;margin:5px;}
+
+button{
+background:#38bdf8;
+border:none;
+padding:10px 20px;
+font-size:16px;
+border-radius:6px;
+cursor:pointer;
+margin:5px;
+}
+
 button:hover{background:#0ea5e9;}
+
 button.danger{background:#ef4444;}
-table{width:100%;border-collapse:collapse;margin-top:10px;}
-th,td{border:1px solid #334155;padding:8px;text-align:center;}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:10px;
+}
+
+th,td{
+border:1px solid #334155;
+padding:8px;
+text-align:center;
+}
+
 th{background:#1e293b;}
 </style>
 </head>
+
 <body>
 
 <h1>🛡️ Nmap 網站探詢測驗（20 題）</h1>
 
 <div class="section">
-  <h2>👨‍🎓 學生資料</h2>
-  班級：<input id="className">
-  座號：<input id="no">
-  姓名：<input id="name">
+<h2>👨‍🎓 學生資料</h2>
+
+班級：
+<input id="className">
+
+座號：
+<input id="no">
+
+姓名：
+<input id="name">
 </div>
 
 <div class="section" id="quiz"></div>
+
 <button onclick="submitQuiz()">提交測驗</button>
+
 <h2 id="result"></h2>
 
 <hr>
 
 <div class="section" id="teacherLoginDiv">
-  <h2>🔐 教師登入</h2>
-  教師密碼：<input type="password" id="teacherPwd">
-  <button onclick="teacherLogin()">登入</button>
-  <p id="loginMsg" style="color:#f87171"></p>
+
+<h2>🔐 教師登入</h2>
+
+教師密碼：
+<input type="password" id="teacherPwd">
+
+<button onclick="teacherLogin()">登入</button>
+
+<p id="loginMsg" style="color:#f87171"></p>
+
 </div>
+
 
 <div class="section" id="teacherArea" style="display:none">
-  <h2>👨‍🏫 教師成績總覽</h2>
-  <button onclick="exportCSV()">📤 匯出 CSV</button>
-  <button class="danger" onclick="clearRecords()">🗑 清空所有成績</button>
 
-  <table>
-    <thead>
-      <tr>
-        <th>班級</th><th>座號</th><th>姓名</th><th>分數</th><th>時間</th>
-      </tr>
-    </thead>
-    <tbody id="records"></tbody>
-  </table>
+<h2>👨‍🏫 教師成績總覽</h2>
 
-  <button onclick="showAnswers()">📢 公佈正確答案</button>
-  <div id="answerDiv" style="display:none">
-    <h3>📌 正確答案表</h3>
-    <table>
-      <thead>
-        <tr><th>題號</th><th>題目</th><th>正確答案</th></tr>
-      </thead>
-      <tbody id="answerKey"></tbody>
-    </table>
-  </div>
+<button onclick="exportCSV()">📤 匯出 CSV</button>
+
+<button class="danger" onclick="clearRecords()">🗑 清空所有成績</button>
+
+<table>
+
+<thead>
+<tr>
+<th>班級</th>
+<th>座號</th>
+<th>姓名</th>
+<th>分數</th>
+<th>時間</th>
+</tr>
+</thead>
+
+<tbody id="records"></tbody>
+
+</table>
+
+<button onclick="showAnswers()">📢 公佈正確答案</button>
+
+<div id="answerDiv" style="display:none">
+
+<h3>📌 正確答案表</h3>
+
+<table>
+
+<thead>
+<tr>
+<th>題號</th>
+<th>題目</th>
+<th>正確答案</th>
+</tr>
+</thead>
+
+<tbody id="answerKey"></tbody>
+
+</table>
+
+</div>
 </div>
 
-<script>
-const TEACHER_PASSWORD = "teacher123";
 
-/* ===== 題庫：Nmap 網站探詢與漏洞利用（20 題）===== */
-const questions = [
- {id:1,q:"Nmap 的主要用途是？",o:["網路掃描與主機偵測","加密資料","網站優化","備份資料"],a:0},
- {id:2,q:"Nmap -sS 掃描類型是？",o:["半開掃描（SYN Scan）","TCP 全開掃描","UDP 掃描","Ping 掃描"],a:0},
- {id:3,q:"使用 Nmap 可查？",o:["開放端口與服務","資料庫密碼","防火牆規則","網站設計"],a:0},
- {id:4,q:"Nmap -O 參數功能？",o:["辨識作業系統","加速網速","掃描漏洞","備份資料"],a:0},
- {id:5,q:"Nmap -p 參數作用？",o:["指定掃描的端口","加密傳輸","掃描漏洞","增加RAM"],a:0},
- {id:6,q:"使用 Nmap 可偵測？",o:["網路設備與服務版本","網站內容","SEO 效果","資料庫資料"],a:0},
- {id:7,q:"Nmap -A 掃描包含？",o:["OS 指紋、版本、腳本掃描","僅加密","僅掃描漏洞","僅備份"],a:0},
- {id:8,q:"使用 Nmap 時 -Pn 代表？",o:["跳過 Ping 掃描","加密資料","備份網站","增加速度"],a:0},
- {id:9,q:"Nmap Script Engine（NSE）功能？",o:["自動化漏洞掃描與安全檢測","加密資料","備份資料","提升速度"],a:0},
- {id:10,q:"Nmap -v 作用？",o:["顯示掃描詳細資訊","加速網速","增加流量","備份資料"],a:0},
- {id:11,q:"Nmap 掃描 TCP 端口的預設方式？",o:["SYN 半開掃描","UDP 掃描","Ping 掃描","全開掃描"],a:0},
- {id:12,q:"Nmap 可用於滲透測試的哪個階段？",o:["偵察與掃描","漏洞利用","資料刪除","SEO 優化"],a:0},
- {id:13,q:"Nmap 掃描速度控制參數？",o:["-T0~T5","加密參數","備份選項","端口設定"],a:0},
- {id:14,q:"Nmap -sV 參數功能？",o:["版本探測","作業系統辨識","Ping 掃描","端口指定"],a:0},
- {id:15,q:"Nmap 可搭配哪種工具做漏洞利用？",o:["Metasploit","Excel","Photoshop","Word"],a:0},
- {id:16,q:"Nmap 掃描結果可輸出格式？",o:["正常文字、XML、Grepable","PDF","Excel","JSON 專用"],a:0},
- {id:17,q:"Nmap 使用者應遵守？",o:["合法使用並取得授權","隨意掃描","增加流量","提升網速"],a:0},
- {id:18,q:"Nmap 掃描內網時應注意？",o:["避免影響正常服務","提升網速","增加RAM","備份資料"],a:0},
- {id:19,q:"Nmap -6 掃描用途？",o:["IPv6 網路掃描","加密資料","備份資料","提升速度"],a:0},
- {id:20,q:"Nmap 結果可用於？",o:["制定防禦策略與修補漏洞","優化網站","增加訪問量","SEO 分析"],a:0}
+<script>
+
+const TEACHER_PASSWORD="teacher123";
+
+/* 題庫 */
+
+const questions=[
+
+{id:1,q:"Nmap 的主要用途是？",o:["網路掃描與主機偵測","加密資料","網站優化","備份資料"],a:0},
+
+{id:2,q:"Nmap -sS 掃描類型是？",o:["半開掃描（SYN Scan）","TCP 全開掃描","UDP 掃描","Ping 掃描"],a:0},
+
+{id:3,q:"使用 Nmap 可查？",o:["開放端口與服務","資料庫密碼","防火牆規則","網站設計"],a:0},
+
+{id:4,q:"Nmap -O 參數功能？",o:["辨識作業系統","加速網速","掃描漏洞","備份資料"],a:0},
+
+{id:5,q:"Nmap -p 參數作用？",o:["指定掃描的端口","加密傳輸","掃描漏洞","增加RAM"],a:0},
+
+{id:6,q:"使用 Nmap 可偵測？",o:["網路設備與服務版本","網站內容","SEO 效果","資料庫資料"],a:0},
+
+{id:7,q:"Nmap -A 掃描包含？",o:["OS 指紋、版本、腳本掃描","僅加密","僅掃描漏洞","僅備份"],a:0},
+
+{id:8,q:"使用 Nmap 時 -Pn 代表？",o:["跳過 Ping 掃描","加密資料","備份網站","增加速度"],a:0},
+
+{id:9,q:"Nmap Script Engine 功能？",o:["自動化漏洞掃描與安全檢測","加密資料","備份資料","提升速度"],a:0},
+
+{id:10,q:"Nmap -v 作用？",o:["顯示掃描詳細資訊","加速網速","增加流量","備份資料"],a:0},
+
+{id:11,q:"Nmap 掃描 TCP 預設方式？",o:["SYN 半開掃描","UDP 掃描","Ping 掃描","全開掃描"],a:0},
+
+{id:12,q:"Nmap 用於滲透測試哪個階段？",o:["偵察與掃描","漏洞利用","資料刪除","SEO"],a:0},
+
+{id:13,q:"Nmap 掃描速度控制？",o:["-T0~T5","加密參數","備份選項","端口設定"],a:0},
+
+{id:14,q:"Nmap -sV 功能？",o:["版本探測","OS辨識","Ping掃描","端口指定"],a:0},
+
+{id:15,q:"Nmap 可搭配哪個工具漏洞利用？",o:["Metasploit","Excel","Photoshop","Word"],a:0},
+
+{id:16,q:"Nmap 結果可輸出？",o:["文字、XML、Grepable","PDF","Excel","JSON專用"],a:0},
+
+{id:17,q:"使用 Nmap 應遵守？",o:["合法取得授權","隨意掃描","增加流量","提升網速"],a:0},
+
+{id:18,q:"掃描內網應注意？",o:["避免影響服務","提升網速","增加RAM","備份資料"],a:0},
+
+{id:19,q:"Nmap -6 用途？",o:["IPv6掃描","加密資料","備份資料","提升速度"],a:0},
+
+{id:20,q:"Nmap 結果可用於？",o:["制定防禦策略","優化網站","增加訪問量","SEO"],a:0}
+
 ];
 
-let currentQuestions = [];
 
-/* ===== 載入題目（隨機）===== */
-window.onload = function(){
-  currentQuestions = [...questions].sort(()=>Math.random()-0.5);
-  const quiz = document.getElementById("quiz");
-  quiz.innerHTML = "";
-  currentQuestions.forEach((q,i)=>{
-    let html = `<div class="question"><b>${i+1}. ${q.q}</b><br>`;
-    q.o.forEach((o,j)=>{
-      html += `<label><input type="radio" name="q${i}" value="${j}"> ${o}</label><br>`;
-    });
-    html += "</div>";
-    quiz.innerHTML += html;
-  });
+let currentQuestions=[];
+
+
+/* 載入題目 */
+
+window.onload=function(){
+
+currentQuestions=[...questions].sort(()=>Math.random()-0.5);
+
+const quiz=document.getElementById("quiz");
+
+quiz.innerHTML="";
+
+currentQuestions.forEach((q,i)=>{
+
+let html=`<div class="question"><b>${i+1}. ${q.q}</b><br>`;
+
+q.o.forEach((o,j)=>{
+
+html+=`<label><input type="radio" name="q${i}" value="${j}"> ${o}</label><br>`;
+
+});
+
+html+="</div>";
+
+quiz.innerHTML+=html;
+
+});
+
 }
 
-/* ===== 學生提交 ===== */
+
+/* 提交測驗 */
+
 function submitQuiz(){
-  const c = className.value;
-  const n = no.value;
-  const nm = name.value;
-  if(!c || !n || !nm){
-    alert("請填完整學生資料");
-    return;
-  }
 
-  let score = 0;
-  currentQuestions.forEach((q,i)=>{
-    const s = document.querySelector(`input[name="q${i}"]:checked`);
-    if(s && +s.value === q.a) score++;
-  });
+const c=document.getElementById("className").value;
 
-  result.innerText = `你的成績：${score} / 20`;
+const n=document.getElementById("no").value;
 
-  const data = JSON.parse(localStorage.getItem("records") || "[]");
-  data.push({class:c,no:n,name:nm,score,time:new Date().toLocaleString()});
-  localStorage.setItem("records", JSON.stringify(data));
-  loadRecords();
+const nm=document.getElementById("name").value;
+
+
+if(!c||!n||!nm){
+
+alert("請填完整學生資料");
+
+return;
+
 }
 
-/* ===== 教師登入 ===== */
+
+let score=0;
+
+currentQuestions.forEach((q,i)=>{
+
+const s=document.querySelector(`input[name="q${i}"]:checked`);
+
+if(s&&+s.value===q.a)score++;
+
+});
+
+
+document.getElementById("result").innerText="你的成績："+score+" / 20";
+
+
+const data=JSON.parse(localStorage.getItem("records")||"[]");
+
+data.push({
+
+class:c,
+
+no:n,
+
+name:nm,
+
+score:score,
+
+time:new Date().toLocaleString()
+
+});
+
+
+localStorage.setItem("records",JSON.stringify(data));
+
+loadRecords();
+
+}
+
+
+/* 教師登入 */
+
 function teacherLogin(){
-  if(teacherPwd.value === TEACHER_PASSWORD){
-    teacherLoginDiv.style.display="none";
-    teacherArea.style.display="block";
-    loadRecords();
-  }else{
-    loginMsg.innerText="❌ 密碼錯誤";
-  }
+
+if(document.getElementById("teacherPwd").value===TEACHER_PASSWORD){
+
+document.getElementById("teacherLoginDiv").style.display="none";
+
+document.getElementById("teacherArea").style.display="block";
+
+loadRecords();
+
+}else{
+
+document.getElementById("loginMsg").innerText="❌ 密碼錯誤";
+
 }
 
-/* ===== 顯示成績 ===== */
+}
+
+
+/* 顯示成績 */
+
 function loadRecords(){
-  records.innerHTML = "";
-  const data = JSON.parse(localStorage.getItem("records") || "[]");
-  data.forEach(r=>{
-    records.innerHTML += `<tr>
-      <td>${r.class}</td>
-      <td>${r.no}</td>
-      <td>${r.name}</td>
-      <td>${r.score}</td>
-      <td>${r.time}</td>
-    </tr>`;
-  });
+
+const table=document.getElementById("records");
+
+table.innerHTML="";
+
+
+const data=JSON.parse(localStorage.getItem("records")||"[]");
+
+
+data.forEach(r=>{
+
+table.innerHTML+=`<tr>
+
+<td>${r.class}</td>
+
+<td>${r.no}</td>
+
+<td>${r.name}</td>
+
+<td>${r.score}</td>
+
+<td>${r.time}</td>
+
+</tr>`;
+
+});
+
 }
 
-/* ===== 清空成績 ===== */
+
+/* 清空 */
+
 function clearRecords(){
-  if(confirm("確定清空所有學生成績？")){
-    localStorage.removeItem("records");
-    loadRecords();
-    alert("✅ 成績已清空");
-  }
+
+if(confirm("確定清空所有學生成績？")){
+
+localStorage.removeItem("records");
+
+loadRecords();
+
+alert("成績已清空");
+
 }
 
-/* ===== 公佈答案 ===== */
+}
+
+
+/* 公佈答案 */
+
 function showAnswers(){
-  answerDiv.style.display="block";
-  answerKey.innerHTML="";
-  questions.forEach(q=>{
-    answerKey.innerHTML += `<tr>
-      <td>${q.id}</td>
-      <td>${q.q}</td>
-      <td>${q.o[q.a]}</td>
-    </tr>`;
-  });
+
+document.getElementById("answerDiv").style.display="block";
+
+const key=document.getElementById("answerKey");
+
+key.innerHTML="";
+
+
+questions.forEach(q=>{
+
+key.innerHTML+=`<tr>
+
+<td>${q.id}</td>
+
+<td>${q.q}</td>
+
+<td>${q.o[q.a]}</td>
+
+</tr>`;
+
+});
+
 }
 
-/* ===== CSV 匯出（UTF-8 + BOM，Excel 不亂碼）===== */
+
+/* 匯出CSV */
+
 function exportCSV(){
-  const data = JSON.parse(localStorage.getItem("records") || "[]");
-  if(!data.length){
-    alert("目前沒有成績可匯出");
-    return;
-  }
 
-  let csv = "班級,座號,姓名,分數,時間\n";
-  data.forEach(r=>{
-    csv += `"${r.class}","${r.no}","${r.name}","${r.score}","${r.time}"\n`;
-  });
+const data=JSON.parse(localStorage.getItem("records")||"[]");
 
-  const BOM = "\uFEFF";
-  const blob = new Blob([BOM + csv], { type: "text/csv;charset=utf-8;" });
+if(!data.length){
 
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "Nmap_網站探詢與漏洞利用測驗成績.csv";
-  a.click();
+alert("沒有資料");
+
+return;
+
 }
+
+
+let csv="班級,座號,姓名,分數,時間\n";
+
+data.forEach(r=>{
+
+csv+=`"${r.class}","${r.no}","${r.name}","${r.score}","${r.time}"\n`;
+
+});
+
+
+const BOM="\uFEFF";
+
+const blob=new Blob([BOM+csv],{type:"text/csv;charset=utf-8;"});
+
+
+const a=document.createElement("a");
+
+a.href=URL.createObjectURL(blob);
+
+a.download="Nmap測驗成績.csv";
+
+a.click();
+
+}
+
 </script>
 
 </body>
