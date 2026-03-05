@@ -4,17 +4,30 @@
 <meta charset="UTF-8">
 <title>資安管理與法規測驗</title>
 <style>
-body{font-family:"Microsoft JhengHei",sans-serif;background:#0f172a;color:#e5e7eb;padding:20px;}
-h1,h2,h3{color:#38bdf8;}
-.section{background:#020617;padding:15px;border-radius:8px;margin-bottom:20px;}
+body{
+  font-family:"Microsoft JhengHei",sans-serif;
+  background:#0f172a;
+  color:#e5e7eb;
+  padding:20px;
+}
+h1,h2{color:#38bdf8;}
+.section{
+  background:#020617;
+  padding:15px;
+  border-radius:8px;
+  margin-bottom:20px;
+}
 .question{margin-bottom:15px;}
-input{padding:5px;margin:5px;}
-button{background:#38bdf8;border:none;padding:10px 20px;font-size:16px;border-radius:6px;cursor:pointer;margin:5px;}
-button:hover{background:#0ea5e9;}
-button.danger{background:#ef4444;}
-table{width:100%;border-collapse:collapse;margin-top:10px;}
-th,td{border:1px solid #334155;padding:8px;text-align:center;}
-th{background:#1e293b;}
+input{padding:6px;margin:5px;}
+button{
+  background:#38bdf8;
+  border:none;
+  padding:10px 20px;
+  font-size:16px;
+  border-radius:6px;
+  cursor:pointer;
+}
+button:disabled{background:#64748b;}
 </style>
 </head>
 <body>
@@ -23,83 +36,48 @@ th{background:#1e293b;}
 
 <div class="section">
   <h2>👨‍🎓 學生資料</h2>
-  班級：<input id="className">
-  座號：<input id="no">
-  姓名：<input id="name">
+  班級：<input id="stuClass"><br>
+  座號：<input id="stuSeat"><br>
+  姓名：<input id="stuName">
 </div>
 
 <div class="section" id="quiz"></div>
+
 <button id="submitBtn" onclick="submitQuiz()">提交測驗</button>
 <h2 id="result"></h2>
 
-<hr>
-
-<div class="section" id="teacherLoginDiv">
-  <h2>🔐 教師登入</h2>
-  教師密碼：<input type="password" id="teacherPwd">
-  <button onclick="teacherLogin()">登入</button>
-  <p id="loginMsg" style="color:#f87171"></p>
-</div>
-
-<div class="section" id="teacherArea" style="display:none">
-  <h2>👨‍🏫 教師成績總覽</h2>
-  <button onclick="exportCSV()">📤 匯出 CSV</button>
-  <button class="danger" onclick="clearRecords()">🗑 清空所有成績</button>
-
-  <table>
-    <thead>
-      <tr>
-        <th>班級</th><th>座號</th><th>姓名</th><th>分數</th><th>時間</th>
-      </tr>
-    </thead>
-    <tbody id="records"></tbody>
-  </table>
-
-  <button onclick="showAnswers()">📢 公佈正確答案</button>
-  <div id="answerDiv" style="display:none">
-    <h3>📌 正確答案表</h3>
-    <table>
-      <thead>
-        <tr><th>題號</th><th>題目</th><th>正確答案</th></tr>
-      </thead>
-      <tbody id="answerKey"></tbody>
-    </table>
-  </div>
-</div>
-
 <script>
-const TEACHER_PASSWORD = "teacher123";
-
-/* ===== 題庫 ===== */
+/* ===== 題庫（20 題）===== */
 const questions = [
- {id:1,q:"資安管理三大目標 CIA 中的 I 代表？",o:["完整性","機密性","可用性","便利性"],a:0},
- {id:2,q:"資安政策最主要目的是？",o:["提供管理規範與安全指引","提升網速","增加硬體效能","備份資料"],a:0},
- {id:3,q:"ISO 27001 主要內容？",o:["資訊安全管理系統","防火牆設定","加密演算法","病毒掃描"],a:0},
- {id:4,q:"個資法主要保障？",o:["個人資料安全","網速","硬體效能","資料備份"],a:0},
- {id:5,q:"資安事件通報期限？",o:["應立即或依規定時間通報","一年一次","每月一次","不需通報"],a:0},
- {id:6,q:"資安風險評估目的是？",o:["找出與降低資安風險","提升網路速度","增加儲存空間","更新軟體"],a:0},
- {id:7,q:"資訊系統使用者應遵守？",o:["資訊安全政策及規範","增加RAM","加速下載","更新防毒"],a:0},
- {id:8,q:"資料分類與分級主要作用？",o:["依機密程度管理資料存取","提升網速","管理硬碟空間","防火牆設定"],a:0},
- {id:9,q:"資安管理責任歸屬於？",o:["組織各層級管理者及使用者","僅IT人員","僅總經理","僅防火牆管理者"],a:0},
- {id:10,q:"遵循資安法規可達到？",o:["合法合規，降低風險","提升網速","增加硬體效能","自動更新系統"],a:0},
- {id:11,q:"ISO 27002 提供？",o:["資安控制措施指引","網速加速","備份方法","硬體設定"],a:0},
- {id:12,q:"資訊外洩風險屬於？",o:["機密性風險","效能風險","容量風險","網路風險"],a:0},
- {id:13,q:"資訊安全事件應？",o:["立刻通報並調查","忽略","自行刪除","加密硬碟"],a:0},
- {id:14,q:"資安審計目的？",o:["檢查遵循政策及法規情況","提升速度","增加硬體","更新軟體"],a:0},
- {id:15,q:"資安教育訓練主要對象？",o:["全體員工及使用者","僅IT人員","僅主管","僅防火牆管理人員"],a:0},
- {id:16,q:"資安控制措施包括？",o:["技術、管理、物理三類","僅加密","僅防火牆","僅授權"],a:0},
- {id:17,q:"違反資安法規可能？",o:["遭受罰款或刑責","提升網速","增加硬體","自動更新"],a:0},
- {id:18,q:"資訊存取權限應依？",o:["最小必要原則","最大化權限","隨意分配","公開帳號"],a:0},
- {id:19,q:"資安管理流程包含？",o:["風險評估、控制、監控及改善","僅安裝防毒","僅加密","僅備份"],a:0},
- {id:20,q:"資安事件處理應？",o:["依SOP處理並紀錄","忽略","自行刪除","隨意調整"],a:0}
+ {q:"資安管理三大目標 CIA 中的 I 代表？",o:["完整性","機密性","可用性","便利性"],a:0},
+ {q:"資安政策最主要目的是？",o:["提供管理規範與安全指引","提升網速","增加硬體效能","備份資料"],a:0},
+ {q:"ISO 27001 主要內容？",o:["資訊安全管理系統","防火牆設定","加密演算法","病毒掃描"],a:0},
+ {q:"個資法主要保障？",o:["個人資料安全","網速","硬體效能","資料備份"],a:0},
+ {q:"資安事件通報期限？",o:["應立即或依規定時間通報","一年一次","每月一次","不需通報"],a:0},
+ {q:"資安風險評估目的是？",o:["找出與降低資安風險","提升網路速度","增加儲存空間","更新軟體"],a:0},
+ {q:"資訊系統使用者應遵守？",o:["資訊安全政策及規範","增加RAM","加速下載","更新防毒"],a:0},
+ {q:"資料分類與分級主要作用？",o:["依機密程度管理資料存取","提升網速","管理硬碟空間","防火牆設定"],a:0},
+ {q:"資安管理責任歸屬於？",o:["組織各層級管理者及使用者","僅IT人員","僅總經理","僅防火牆管理者"],a:0},
+ {q:"遵循資安法規可達到？",o:["合法合規，降低風險","提升網速","增加硬體效能","自動更新系統"],a:0},
+ {q:"ISO 27002 提供？",o:["資安控制措施指引","網速加速","備份方法","硬體設定"],a:0},
+ {q:"資訊外洩風險屬於？",o:["機密性風險","效能風險","容量風險","網路風險"],a:0},
+ {q:"資訊安全事件應？",o:["立刻通報並調查","忽略","自行刪除","加密硬碟"],a:0},
+ {q:"資安審計目的？",o:["檢查遵循政策及法規情況","提升速度","增加硬體","更新軟體"],a:0},
+ {q:"資安教育訓練主要對象？",o:["全體員工及使用者","僅IT人員","僅主管","僅防火牆管理人員"],a:0},
+ {q:"資安控制措施包括？",o:["技術、管理、物理三類","僅加密","僅防火牆","僅授權"],a:0},
+ {q:"違反資安法規可能？",o:["遭受罰款或刑責","提升網速","增加硬體","自動更新"],a:0},
+ {q:"資訊存取權限應依？",o:["最小必要原則","最大化權限","隨意分配","公開帳號"],a:0},
+ {q:"資安管理流程包含？",o:["風險評估、控制、監控及改善","僅安裝防毒","僅加密","僅備份"],a:0},
+ {q:"資安事件處理應？",o:["依SOP處理並紀錄","忽略","自行刪除","隨意調整"],a:0}
 ];
 
 let currentQuestions = [];
 
 /* ===== 載入題目 ===== */
-window.onload = ()=>{
+window.onload = () => {
   currentQuestions = [...questions].sort(()=>Math.random()-0.5);
-  quiz.innerHTML="";
+  const quiz = document.getElementById("quiz");
+  quiz.innerHTML = "";
   currentQuestions.forEach((q,i)=>{
     let html = `<div class="question"><b>${i+1}. ${q.q}</b><br>`;
     q.o.forEach((o,j)=>{
@@ -110,78 +88,28 @@ window.onload = ()=>{
   });
 };
 
-/* ===== 提交測驗（✅已修正）===== */
+/* ===== 提交測驗（最終穩定版）===== */
 function submitQuiz(){
-  const c  = document.getElementById("className").value.trim();
-  const n  = document.getElementById("no").value.trim();
-  const nm = document.getElementById("name").value.trim();
+  const c = document.getElementById("stuClass").value.trim();
+  const s = document.getElementById("stuSeat").value.trim();
+  const n = document.getElementById("stuName").value.trim();
 
-  if(!c || !n || !nm){
+  if(c === "" || s === "" || n === ""){
     alert("請填完整學生資料");
     return;
   }
 
   let score = 0;
   currentQuestions.forEach((q,i)=>{
-    const s = document.querySelector(`input[name="q${i}"]:checked`);
-    if(s && +s.value === q.a) score++;
+    const ans = document.querySelector(`input[name="q${i}"]:checked`);
+    if(ans && +ans.value === q.a) score++;
   });
 
-  result.innerText = `你的成績：${score} / 20`;
-
-  const data = JSON.parse(localStorage.getItem("records") || "[]");
-  data.push({class:c,no:n,name:nm,score,time:new Date().toLocaleString()});
-  localStorage.setItem("records", JSON.stringify(data));
+  document.getElementById("result").innerText =
+    `你的成績：${score} / ${currentQuestions.length}`;
 
   document.getElementById("submitBtn").disabled = true;
   document.getElementById("submitBtn").innerText = "已提交";
-}
-
-/* ===== 教師功能 ===== */
-function teacherLogin(){
-  if(teacherPwd.value === TEACHER_PASSWORD){
-    teacherLoginDiv.style.display="none";
-    teacherArea.style.display="block";
-    loadRecords();
-  }else loginMsg.innerText="❌ 密碼錯誤";
-}
-
-function loadRecords(){
-  records.innerHTML="";
-  JSON.parse(localStorage.getItem("records")||"[]")
-    .forEach(r=>{
-      records.innerHTML+=`<tr>
-        <td>${r.class}</td><td>${r.no}</td><td>${r.name}</td>
-        <td>${r.score}</td><td>${r.time}</td></tr>`;
-    });
-}
-
-function clearRecords(){
-  if(confirm("確定清空所有成績？")){
-    localStorage.removeItem("records");
-    loadRecords();
-  }
-}
-
-function showAnswers(){
-  answerDiv.style.display="block";
-  answerKey.innerHTML="";
-  questions.forEach(q=>{
-    answerKey.innerHTML+=`<tr><td>${q.id}</td><td>${q.q}</td><td>${q.o[q.a]}</td></tr>`;
-  });
-}
-
-/* ===== CSV ===== */
-function exportCSV(){
-  const d = JSON.parse(localStorage.getItem("records")||"[]");
-  if(!d.length){alert("沒有資料");return;}
-  let csv="班級,座號,姓名,分數,時間\n";
-  d.forEach(r=>csv+=`"${r.class}","${r.no}","${r.name}","${r.score}","${r.time}"\n`);
-  const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download="資安管理與法規成績.csv";
-  a.click();
 }
 </script>
 
